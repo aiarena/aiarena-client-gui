@@ -18,6 +18,7 @@ pub struct ResultsData {
     pub allow_debug: String,
 }
 impl ResultsData {
+    #[allow(dead_code)]
     pub fn load_from_file() -> Result<Self, Box<dyn Error>> {
         let mut f: File;
         if !Path::new(&RESULTS_FILE).exists() {
@@ -33,6 +34,7 @@ impl ResultsData {
 
         Ok(data)
     }
+    #[allow(dead_code)]
     pub fn save_to_file(&self) -> Result<(), Box<dyn Error>> {
         let mut f: File;
         if !Path::new(&RESULTS_FILE).exists() {

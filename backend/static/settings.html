@@ -18,8 +18,6 @@
                          type: "GET",
                          dataType:"json"    
                      }).done(function(data) {
-                         data =JSON.parse(data);
-                             console.log(data);
                          $("input#bot_directory_id_field").val(data.bot_directory_location)
                          $("input#sc2_directory_id_field").val(data.sc2_directory_location)
                          $("input#replay_directory_id_field").val(data.replay_directory_location)

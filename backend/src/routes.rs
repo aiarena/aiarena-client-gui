@@ -1,24 +1,22 @@
-
 use crate::api_structs::{AiarenaApiBots, Bots, Maps};
+use crate::bots::start_bot;
 use crate::paths::{find_available_bots, find_available_maps};
 use crate::run_game_data::RunGameData;
 use crate::settings_data::{settings_file_exists, settings_okay, SettingsFormData};
-use crate::supervisor::Supervisor;
+use crate::supervisor::{Supervisor, SupervisorChannel};
 use actix_web::client::{Client, Connector};
 use actix_web::error::{ErrorBadGateway, ErrorInternalServerError};
 pub use actix_web::{App, HttpResponse, HttpServer, Result};
-use crossbeam::{self, channel::Sender};
 use handlebars::Handlebars;
 use openssl::ssl::{SslConnector, SslMethod};
+use paperclip::actix::api_v2_operation;
 use paperclip::actix::web::{Bytes, Form, Json};
-use paperclip::actix::{api_v2_operation, web, OpenApiExt};
 use rand::prelude::IteratorRandom;
 use rust_ac::server::RustServer;
-use std::thread::{sleep, JoinHandle};
-use std::time::Duration;
+use std::thread::JoinHandle;
 
 const AIARENA_URL: &str = "https://aiarena.net";
-static mut SUPERVISOR_SENDER: Option<Sender<String>> = None;
+static mut SUPERVISOR_CHANNEL: Option<SupervisorChannel> = None;
 static mut RUST_SERVER_HANDLE: Option<JoinHandle<()>> = None;
 pub const CLIENT_PORT: i32 = 8642;
 
@@ -38,46 +36,73 @@ pub async fn index(hb: actix_web::web::Data<Handlebars<'_>>) -> HttpResponse {
 
     // Ok(HttpResponse::build(StatusCode::OK).content_type("text/html; charset=utf-8").body(include_str!("../static/index.html")))
 }
+#[allow(clippy::needless_return)]
 #[api_v2_operation]
-pub async fn run_games(run_game_data: Form<RunGameData>) -> Result<HttpResponse> {
+pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
+    let b = String::from_utf8(run_game_data.to_vec()).unwrap();
+    let run_game_data: RunGameData = serde_json::from_str(&b)?;
+
     unsafe {
         if RUST_SERVER_HANDLE.is_none() {
-            RUST_SERVER_HANDLE = Some(RustServer::new("127.0.0.1:8642").run());
-            SUPERVISOR_SENDER = Some(Supervisor::connect())
+            RUST_SERVER_HANDLE =
+                Some(RustServer::new(format!("127.0.0.1:{}", CLIENT_PORT).as_str()).run());
+            SUPERVISOR_CHANNEL =
+                Some(Supervisor::connect().map_err(|e| ErrorInternalServerError(e.to_string()))?);
         }
     }
     let settings_data = SettingsFormData::load_from_file()?;
     let maps = find_available_maps();
+    std::thread::spawn(move || {
+        for _ in 0..run_game_data.iterations {
+            for mut map in &run_game_data.map {
+                if map == "Random" {
+                    map = maps.iter().choose(&mut rand::thread_rng()).unwrap();
+                }
+                for bot1 in &run_game_data.bot1 {
+                    for bot2 in &run_game_data.bot2 {
+                        let mut config = rust_ac::config::Config::new();
+                        config.map = map.clone();
+                        config.disable_debug = !matches!(settings_data.allow_debug.as_str(), "On");
+                        config.match_id = 0; //TODO: increment match_id based on results and append to replay_name
+                        config.player1 = bot1.clone();
+                        config.player2 = bot2.clone();
+                        config.real_time = run_game_data.realtime;
+                        config.visualize = run_game_data.visualize;
+                        config.max_game_time = settings_data.max_game_time as u32;
+                        let str_config = serde_json::to_string(&config).unwrap();
+                        unsafe {
+                            let channel = SUPERVISOR_CHANNEL.as_mut().unwrap();
+                            let _rec = channel.recv();
+                            channel
+                                .send(str_config)
+                                .map_err(|e| {
+                                    println!("{:?}", e.to_string());
+                                    return ErrorInternalServerError(e.to_string());
+                                })
+                                .unwrap();
 
-    for _ in 0..run_game_data.iterations {
-        for mut map in &run_game_data.map {
-            if map == "Random" {
-                map = maps.iter().choose(&mut rand::thread_rng()).unwrap();
-            }
-            for bot1 in &run_game_data.bot1 {
-                for bot2 in &run_game_data.bot2 {
-                    let mut config = rust_ac::config::Config::new();
-                    config.map = map.clone();
-                    config.disable_debug = !matches!(settings_data.allow_debug.as_str(), "On");
-                    config.match_id = 0; //TODO: increment match_id based on results and append to replay_name
-                    config.player1 = bot1.clone();
-                    config.player2 = bot2.clone();
-                    config.real_time = run_game_data.realtime;
-                    config.visualize = run_game_data.visualize;
-                    config.max_game_time = settings_data.max_game_time as u32;
-                    let str_config = serde_json::to_string(&config)?;
-                    unsafe {
-                        SUPERVISOR_SENDER
-                            .as_ref()
-                            .unwrap()
-                            .send(str_config)
-                            .map_err(|e| return ErrorInternalServerError(e.to_string()))?;
+                            let _rec = channel.recv();
+                            let _c = start_bot(
+                                bot1.clone(),
+                                settings_data.bot_directory_location.clone(),
+                                "".to_string(),
+                            );
+                            let _rec = channel.recv();
+                            let _c2 = start_bot(
+                                bot2.clone(),
+                                settings_data.bot_directory_location.clone(),
+                                "".to_string(),
+                            );
+
+                            let _rec = channel.recv();
+                            let result = channel.recv();
+                            println!("Result: {}", result.unwrap());
+                        }
                     }
-                    sleep(Duration::from_secs(30));
                 }
             }
         }
-    }
+    });
 
     Ok(HttpResponse::Ok().finish())
 }
@@ -136,16 +161,16 @@ pub async fn get_arena_bots() -> Result<Json<AiarenaApiBots>> {
             )
             .send() // <- Send http request
             .await;
-        let resp = response.and_then(|mut x| Ok(x.body()));
+        let resp = response.map(|mut x| x.body());
         let b = resp?.await?;
-        let s = String::from_utf8(b.to_vec())
-            .map_err(|e| return ErrorInternalServerError(e.to_string()))?;
+        let s =
+            String::from_utf8(b.to_vec()).map_err(|e| ErrorInternalServerError(e.to_string()))?;
         let aiarena_api_bots: AiarenaApiBots = serde_json::from_str(&s).unwrap();
         return Ok(Json(aiarena_api_bots));
     }
     Err(ErrorBadGateway("Could not connect to AiArena API"))
 }
-
+#[allow(dead_code)]
 async fn test(bytes: Bytes) -> HttpResponse {
     match String::from_utf8(bytes.to_vec()) {
         Ok(text) => {
