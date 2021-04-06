@@ -1,8 +1,0 @@
-{
-  "bot_directory_location": "D:\\Desktop\\AIARENA\\aiarena-client\\aiarena-test-bots",
-  "sc2_directory_location": "123",
-  "replay_directory_location": "123",
-  "API_token": "1858cd347229f77e20a748e50249dd3d7c50c17e",
-  "max_game_time": 73824,
-  "allow_debug": "on"
-}
