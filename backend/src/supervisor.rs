@@ -15,8 +15,9 @@ use awc::{
 };
 
 use actix_web::web::Bytes;
-use crossbeam::channel::{Sender, TryRecvError};
 use futures::stream::{SplitSink, StreamExt};
+
+use std::error::Error;
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -24,10 +25,29 @@ struct ClientCommand(String);
 
 pub struct Supervisor {
     sink_write: SinkWrite<Message, SplitSink<Framed<BoxedSocket, Codec>, Message>>,
+    server_sender: crossbeam::channel::Sender<String>,
+}
+pub struct SupervisorChannel {
+    supervisor_sender: crossbeam::channel::Sender<String>,
+    server_receiver: crossbeam::channel::Receiver<String>,
+}
+impl SupervisorChannel {
+    pub fn send(&mut self, txt: String) -> Result<(), crossbeam::channel::SendError<String>> {
+        self.supervisor_sender.send(txt)
+    }
+    pub fn recv(&mut self) -> Result<String, crossbeam::channel::RecvError> {
+        self.server_receiver.recv()
+    }
+    #[allow(dead_code)]
+    pub fn try_recv(&mut self) -> Result<String, crossbeam::channel::TryRecvError> {
+        self.server_receiver.try_recv()
+    }
 }
 impl Supervisor {
-    pub fn connect() -> Sender<String> {
-        let (sender, receiver) = crossbeam::channel::unbounded();
+    pub fn connect() -> Result<SupervisorChannel, Box<dyn Error>> {
+        let (supervisor_sender, supervisor_receiver) = crossbeam::channel::unbounded::<String>();
+        let (server_sender, server_receiver) = crossbeam::channel::unbounded::<String>();
+
         Arbiter::spawn(async {
             Client::builder()
                 .timeout(Duration::from_secs(15))
@@ -43,21 +63,22 @@ impl Supervisor {
                         Supervisor::add_stream(stream, ctx);
                         Supervisor {
                             sink_write: SinkWrite::new(sink, ctx),
+                            server_sender,
                         }
                     });
                     thread::spawn(move || loop {
-                        if let Ok(msg) = receiver.try_recv().map_err(|e| match e {
-                            TryRecvError::Empty => {}
-                            TryRecvError::Disconnected => {
-                                println!("Disconnected")
-                            }
-                        }) {
+                        while let Ok(msg) = supervisor_receiver.try_recv() {
+                            println!("supervisor receiver");
                             addr.do_send(ClientCommand(msg))
                         }
                     })
-                });
+                })
+                .unwrap();
         });
-        sender
+        Ok(SupervisorChannel {
+            supervisor_sender,
+            server_receiver,
+        })
     }
 }
 impl Actor for Supervisor {
@@ -102,7 +123,10 @@ impl Handler<ClientCommand> for Supervisor {
 impl StreamHandler<Result<Frame, WsProtocolError>> for Supervisor {
     fn handle(&mut self, msg: Result<Frame, WsProtocolError>, _: &mut Context<Self>) {
         if let Ok(Frame::Text(txt)) = msg {
-            println!("Server: {:?}", txt)
+            println!("Server:{:?}", txt);
+            self.server_sender
+                .send(String::from_utf8(txt.to_vec()).unwrap())
+                .unwrap();
         } else if let Ok(Frame::Pong(_)) = msg {
             println!("Server: Pong")
         }

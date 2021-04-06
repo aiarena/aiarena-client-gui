@@ -5,6 +5,8 @@ mod run_game_data;
 mod settings_data;
 mod supervisor;
 pub mod routes;
+pub mod bots;
+
 pub use actix_web::HttpServer;
 pub use actix_web_static_files;
 pub use handlebars::Handlebars;

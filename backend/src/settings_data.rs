@@ -55,14 +55,9 @@ impl SettingsFormData {
 }
 pub fn settings_okay() -> bool {
     if let Ok(settings_data) = SettingsFormData::load_from_file() {
-        return if settings_data.bot_directory_location.is_empty()
+        return !(settings_data.bot_directory_location.is_empty()
             || settings_data.sc2_directory_location.is_empty()
-            || settings_data.replay_directory_location.is_empty()
-        {
-            false
-        } else {
-            true
-        };
+            || settings_data.replay_directory_location.is_empty())
     }
     false
 }

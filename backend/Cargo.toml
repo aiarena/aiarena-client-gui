@@ -29,7 +29,7 @@ serde_json = "1.0"
 actix-web-static-files = "3.0"
 actix-web-actors="3" # actors specific to web
 awc = "2"
-rust-arenaclient = {version="*", path="D:/Rust/rust-arenaclient/"}
+rust-arenaclient = {version="*", git="https://github.com/aiarena/rust-arenaclient.git", branch="client-frontend"}
 shellexpand = "*"
 regex = "*"
 futures = "*"
@@ -38,6 +38,8 @@ serde = "*"
 openssl = "*"
 crossbeam = "0.8.0"
 paperclip = { git="https://github.com/wafflespeanut/paperclip.git", features = ["actix", "paperclip-macros"] }
+tokio = { version = "1", features = ["sync"] }
+async-process = "1.0.2"
 
 [build-dependencies]
 actix-web-static-files = "3.0"

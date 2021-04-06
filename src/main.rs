@@ -7,11 +7,13 @@ use std::thread;
 use std::sync::mpsc;
 use aiarena_client_gui_backend_lib::routes::*;
 use aiarena_client_gui_backend_lib::{HttpServer, web, actix_web, Handlebars, OpenApiExt};
-use aiarena_client_gui_backend_lib::{actix_web_static_files, actix};
+use aiarena_client_gui_backend_lib::{actix_web_static_files};
 use web_view::*;
 
 #[actix_web::main]
 async fn main() {
+    ::std::env::set_var("RUST_LOG", "rust_ac=trace");
+    env_logger::init();
     let (server_tx, server_rx) = mpsc::channel();
 
     //start actix web server in separate thread
@@ -37,10 +39,10 @@ async fn main() {
                     "/static", generated,
                 ))
                 .wrap_api()
-                .service(web::resource("/get_maps").route(web::post().to(get_maps)))
-                .service(web::resource("/get_bots").route(web::post().to(get_bots)))
-                .service(web::resource("/get_settings").route(web::post().to(get_settings)))
-                .service(web::resource("/get_arena_bots").route(web::post().to(get_arena_bots)))
+                .service(web::resource("/get_maps").route(web::get().to(get_maps)))
+                .service(web::resource("/get_bots").route(web::get().to(get_bots)))
+                .service(web::resource("/get_settings").route(web::get().to(get_settings)))
+                .service(web::resource("/get_arena_bots").route(web::get().to(get_arena_bots)))
                 .service(web::resource("/run_games").route(web::post().to(run_games)))
                 .service(web::resource("/handle_data").route(web::post().to(handle_data)))
                 .with_json_spec_at("/api")

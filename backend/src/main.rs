@@ -5,7 +5,7 @@ mod run_game_data;
 mod settings_data;
 mod supervisor;
 pub mod routes;
-
+pub mod bots;
 #[macro_use]
 extern crate serde_json;
 
@@ -30,6 +30,7 @@ use rand::prelude::IteratorRandom;
 use rust_ac::server::RustServer;
 use std::thread::{sleep, JoinHandle};
 use std::time::Duration;
+use crate::routes::*;
 
 
 const AIARENA_URL: &str = "https://aiarena.net";
@@ -39,7 +40,7 @@ pub const CLIENT_PORT: i32 = 8642;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    ::std::env::set_var("RUST_LOG", "rust_ac=info");
+    ::std::env::set_var("RUST_LOG", "rust_ac=trace");
     env_logger::init();
     let mut handlebars = Handlebars::new();
     handlebars
@@ -60,10 +61,10 @@ async fn main() -> std::io::Result<()> {
                 "/static", generated,
             ))
             .wrap_api()
-            .service(web::resource("/get_maps").route(web::post().to(get_maps)))
-            .service(web::resource("/get_bots").route(web::post().to(get_bots)))
-            .service(web::resource("/get_settings").route(web::post().to(get_settings)))
-            .service(web::resource("/get_arena_bots").route(web::post().to(get_arena_bots)))
+            .service(web::resource("/get_maps").route(web::get().to(get_maps)))
+            .service(web::resource("/get_bots").route(web::get().to(get_bots)))
+            .service(web::resource("/get_settings").route(web::get().to(get_settings)))
+            .service(web::resource("/get_arena_bots").route(web::get().to(get_arena_bots)))
             .service(web::resource("/run_games").route(web::post().to(run_games)))
             .service(web::resource("/handle_data").route(web::post().to(handle_data)))
             .with_json_spec_at("/api")
