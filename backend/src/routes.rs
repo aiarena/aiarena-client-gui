@@ -1,0 +1,166 @@
+
+use crate::api_structs::{AiarenaApiBots, Bots, Maps};
+use crate::paths::{find_available_bots, find_available_maps};
+use crate::run_game_data::RunGameData;
+use crate::settings_data::{settings_file_exists, settings_okay, SettingsFormData};
+use crate::supervisor::Supervisor;
+use actix_web::client::{Client, Connector};
+use actix_web::error::{ErrorBadGateway, ErrorInternalServerError};
+pub use actix_web::{App, HttpResponse, HttpServer, Result};
+use crossbeam::{self, channel::Sender};
+use handlebars::Handlebars;
+use openssl::ssl::{SslConnector, SslMethod};
+use paperclip::actix::web::{Bytes, Form, Json};
+use paperclip::actix::{api_v2_operation, web, OpenApiExt};
+use rand::prelude::IteratorRandom;
+use rust_ac::server::RustServer;
+use std::thread::{sleep, JoinHandle};
+use std::time::Duration;
+
+const AIARENA_URL: &str = "https://aiarena.net";
+static mut SUPERVISOR_SENDER: Option<Sender<String>> = None;
+static mut RUST_SERVER_HANDLE: Option<JoinHandle<()>> = None;
+pub const CLIENT_PORT: i32 = 8642;
+
+include!(concat!(env!("OUT_DIR"), "/generated.rs"));
+
+pub async fn index(hb: actix_web::web::Data<Handlebars<'_>>) -> HttpResponse {
+    let data = json!({ "settings_okay": settings_okay() });
+    if settings_file_exists() {
+        let body = hb.render("index", &data).unwrap();
+
+        HttpResponse::Ok().body(body)
+    } else {
+        HttpResponse::Found()
+            .header("Location", "/settings")
+            .finish()
+    }
+
+    // Ok(HttpResponse::build(StatusCode::OK).content_type("text/html; charset=utf-8").body(include_str!("../static/index.html")))
+}
+#[api_v2_operation]
+pub async fn run_games(run_game_data: Form<RunGameData>) -> Result<HttpResponse> {
+    unsafe {
+        if RUST_SERVER_HANDLE.is_none() {
+            RUST_SERVER_HANDLE = Some(RustServer::new("127.0.0.1:8642").run());
+            SUPERVISOR_SENDER = Some(Supervisor::connect())
+        }
+    }
+    let settings_data = SettingsFormData::load_from_file()?;
+    let maps = find_available_maps();
+
+    for _ in 0..run_game_data.iterations {
+        for mut map in &run_game_data.map {
+            if map == "Random" {
+                map = maps.iter().choose(&mut rand::thread_rng()).unwrap();
+            }
+            for bot1 in &run_game_data.bot1 {
+                for bot2 in &run_game_data.bot2 {
+                    let mut config = rust_ac::config::Config::new();
+                    config.map = map.clone();
+                    config.disable_debug = !matches!(settings_data.allow_debug.as_str(), "On");
+                    config.match_id = 0; //TODO: increment match_id based on results and append to replay_name
+                    config.player1 = bot1.clone();
+                    config.player2 = bot2.clone();
+                    config.real_time = run_game_data.realtime;
+                    config.visualize = run_game_data.visualize;
+                    config.max_game_time = settings_data.max_game_time as u32;
+                    let str_config = serde_json::to_string(&config)?;
+                    unsafe {
+                        SUPERVISOR_SENDER
+                            .as_ref()
+                            .unwrap()
+                            .send(str_config)
+                            .map_err(|e| return ErrorInternalServerError(e.to_string()))?;
+                    }
+                    sleep(Duration::from_secs(30));
+                }
+            }
+        }
+    }
+
+    Ok(HttpResponse::Ok().finish())
+}
+
+pub async fn settings(hb: actix_web::web::Data<Handlebars<'_>>) -> HttpResponse {
+    let context = json!({});
+    let body = hb.render("settings", &context).unwrap();
+    HttpResponse::Ok().body(body)
+    // Ok(HttpResponse::build(StatusCode::OK).content_type("text/html; charset=utf-8").body(include_str!("../static/settings.html")))
+}
+
+pub async fn watch(hb: actix_web::web::Data<Handlebars<'_>>) -> HttpResponse {
+    let data = json!({});
+    let body = hb.render("watch", &data).unwrap();
+    HttpResponse::Ok().body(body)
+    // Ok(HttpResponse::build(StatusCode::OK).content_type("text/html; charset=utf-8").body(include_str!("../static/index.html")))
+}
+
+#[api_v2_operation]
+pub async fn get_maps() -> Json<Maps> {
+    Json(Maps {
+        maps: find_available_maps(),
+    })
+}
+#[api_v2_operation]
+pub async fn get_bots() -> Json<Bots> {
+    Json(Bots {
+        bots: find_available_bots(),
+    })
+}
+#[api_v2_operation]
+pub async fn handle_data(form: Form<SettingsFormData>) -> Result<HttpResponse> {
+    match form.save_to_file() {
+        Ok(_) => Ok(HttpResponse::Found().header("Location", "/").finish()),
+        Err(e) => Err(actix_web::error::ErrorInternalServerError(e.to_string())),
+    }
+}
+#[api_v2_operation]
+pub async fn get_arena_bots() -> Result<Json<AiarenaApiBots>> {
+    if let Ok(settings_data) = SettingsFormData::load_from_file() {
+        let builder = SslConnector::builder(SslMethod::tls())
+            .map_err(|e| ErrorInternalServerError(e.to_string()))?;
+
+        let client = Client::builder()
+            .connector(Connector::new().ssl(builder.build()).finish())
+            .finish();
+        let response = client
+            .get(format!(
+                "{}{}",
+                AIARENA_URL, r#"/api/bots/?&format=json&bot_zip_publicly_downloadable=true"#
+            )) // <- Create request builder
+            .header("User-Agent", "Actix-web")
+            .header(
+                "Authorization",
+                format!("Token  {}", settings_data.api_token),
+            )
+            .send() // <- Send http request
+            .await;
+        let resp = response.and_then(|mut x| Ok(x.body()));
+        let b = resp?.await?;
+        let s = String::from_utf8(b.to_vec())
+            .map_err(|e| return ErrorInternalServerError(e.to_string()))?;
+        let aiarena_api_bots: AiarenaApiBots = serde_json::from_str(&s).unwrap();
+        return Ok(Json(aiarena_api_bots));
+    }
+    Err(ErrorBadGateway("Could not connect to AiArena API"))
+}
+
+async fn test(bytes: Bytes) -> HttpResponse {
+    match String::from_utf8(bytes.to_vec()) {
+        Ok(text) => {
+            println!("Hello, {}!\n", text);
+        }
+        Err(_) => return HttpResponse::BadRequest().finish(),
+    };
+    HttpResponse::Ok().finish()
+}
+#[api_v2_operation]
+pub async fn get_settings() -> Result<Json<SettingsFormData>> {
+    if let Ok(settings_data) = SettingsFormData::load_from_file() {
+        Ok(Json(settings_data))
+    } else {
+        let settings_data = SettingsFormData::default();
+        Ok(Json(settings_data))
+    }
+}
