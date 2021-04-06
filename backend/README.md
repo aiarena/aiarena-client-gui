@@ -1,7 +1,7 @@
 ## Setting up dev environment
 Except for openssl, it is pretty straightforward.<br> 
 - Install [Rust](https://www.rust-lang.org/tools/install)
-- `git clone ...`
+- `git clone https://github.com/danielvschoor/aiarena-client-gui.git`
 - `cargo run`
 
 # Installing openssl
