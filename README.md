@@ -17,3 +17,5 @@ In order for the executable to work, copy all the dlls from `\src-tauri\target\r
 to `/src-tauri/target/release/` or the installation directory after installing.
 
 For more information around compiling, please see the [readme](./backend/README.md) for the backend.
+
+The backend runs by default on 127.0.0.1:8082
