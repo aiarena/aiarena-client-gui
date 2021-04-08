@@ -8,13 +8,12 @@ use actix::*;
 use actix_codec::Framed;
 use actix_web::rt::{Arbiter, System};
 
+use actix_web::web::Bytes;
 use awc::{
     error::WsProtocolError,
     ws::{Codec, Frame, Message},
     BoxedSocket, Client,
 };
-
-use actix_web::web::Bytes;
 use futures::stream::{SplitSink, StreamExt};
 
 use std::error::Error;

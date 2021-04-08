@@ -1,42 +1,21 @@
 mod api_structs;
+pub mod bots;
 mod paths;
 mod results_data;
+pub mod routes;
 mod run_game_data;
 mod settings_data;
 mod supervisor;
-pub mod routes;
-pub mod bots;
 #[macro_use]
 extern crate serde_json;
 
 #[macro_use]
 extern crate serde;
 
-
-use crate::api_structs::{AiarenaApiBots, Bots, Maps};
-use crate::paths::{find_available_bots, find_available_maps};
-use crate::run_game_data::RunGameData;
-use crate::settings_data::{settings_file_exists, settings_okay, SettingsFormData};
-use crate::supervisor::Supervisor;
-use actix_web::client::{Client, Connector};
-use actix_web::error::{ErrorBadGateway, ErrorInternalServerError};
-pub use actix_web::{App, HttpResponse, HttpServer, Result};
-use crossbeam::{self, channel::Sender};
-use handlebars::Handlebars;
-use openssl::ssl::{SslConnector, SslMethod};
-use paperclip::actix::web::{Bytes, Form, Json};
-use paperclip::actix::{api_v2_operation, web, OpenApiExt};
-use rand::prelude::IteratorRandom;
-use rust_ac::server::RustServer;
-use std::thread::{sleep, JoinHandle};
-use std::time::Duration;
 use crate::routes::*;
-
-
-const AIARENA_URL: &str = "https://aiarena.net";
-static mut SUPERVISOR_SENDER: Option<Sender<String>> = None;
-static mut RUST_SERVER_HANDLE: Option<JoinHandle<()>> = None;
-pub const CLIENT_PORT: i32 = 8642;
+pub use actix_web::{App, HttpResponse, HttpServer, Result};
+use handlebars::Handlebars;
+use paperclip::actix::{web, OpenApiExt};
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
