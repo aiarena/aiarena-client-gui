@@ -45,7 +45,7 @@ async fn main() {
         .with_json_spec_at("/api")
         .build()
     })
-    .bind("127.0.0.1:8081")
+    .bind("127.0.0.1:8082")
     .unwrap()
     .run();
 
