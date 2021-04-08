@@ -1,6 +1,5 @@
 use aiarena_client_gui_backend_lib::actix_web_static_files::resource_dir;
 
-
 #[cfg(windows)]
 extern crate winres;
 
