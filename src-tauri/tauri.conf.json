@@ -2,7 +2,7 @@
   "build": {
     "distDir": "../dist/spa",
     "devPath": "http://localhost:7334",
-    "beforeDevCommand": "yarn dev",
+    "beforeDevCommand": "quasar dev -p 7334",
     "beforeBuildCommand": "yarn build"
   },
   "ctx": {},

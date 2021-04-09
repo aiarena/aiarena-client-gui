@@ -3,6 +3,10 @@
 ## Installation
 - Install [Rust](https://www.rust-lang.org/tools/install)
 - Install `NodeJS` and `yarn`
+- Install tauri-bundler:
+  ```bash
+  cargo install tauri-bundler
+  ```
 - Run <br>
 ```bash
 > yarn
