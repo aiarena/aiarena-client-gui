@@ -1,24 +1,21 @@
 mod api_structs;
+pub mod bots;
 mod paths;
 mod results_data;
+pub mod routes;
 mod run_game_data;
 mod settings_data;
 mod supervisor;
-pub mod routes;
-pub mod bots;
 
+pub use actix;
+pub use actix_web;
 pub use actix_web::HttpServer;
 pub use actix_web_static_files;
 pub use handlebars::Handlebars;
-pub use actix_web;
 pub use paperclip::actix::{web, OpenApiExt};
-pub use actix;
-
 
 #[macro_use]
 extern crate serde_json;
 
 #[macro_use]
 extern crate serde;
-
-
