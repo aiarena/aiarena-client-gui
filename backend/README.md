@@ -5,7 +5,7 @@ Except for openssl, it is pretty straightforward.<br>
 - `cargo run`
 
 # Installing openssl Windows
- - Install vcpkg by following the quickstart guide at https://github.com/Microsoft/vcpkg
+- Install vcpkg by following the quickstart guide at https://github.com/Microsoft/vcpkg
 - Install the 64-bit version of openssl: vcpkg.exe install openssl:x64-windows
   <br> Dynamic linking
 - `set VCPKGRS_DYNAMIC=1`<br>

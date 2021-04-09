@@ -28,7 +28,7 @@ awc = "2"
 rust-arenaclient = {version="*", git="https://github.com/aiarena/rust-arenaclient.git", branch="client-frontend"}
 futures = "0.3.13"
 serde = "1.0.125"
-openssl = "0.10.33"
+#openssl = "0.10.33"
 crossbeam = "0.8.0"
 paperclip = { git="https://github.com/wafflespeanut/paperclip.git", features = ["actix", "paperclip-macros"] }
 

@@ -43,7 +43,7 @@ async fn main() -> std::io::Result<()> {
             .service(web::resource("/get_maps").route(web::get().to(get_maps)))
             .service(web::resource("/get_bots").route(web::get().to(get_bots)))
             .service(web::resource("/get_settings").route(web::get().to(get_settings)))
-            .service(web::resource("/get_arena_bots").route(web::get().to(get_arena_bots)))
+            // .service(web::resource("/get_arena_bots").route(web::get().to(get_arena_bots)))
             .service(web::resource("/run_games").route(web::post().to(run_games)))
             .service(web::resource("/handle_data").route(web::post().to(handle_data)))
             .with_json_spec_at("/api")

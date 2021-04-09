@@ -382,7 +382,6 @@ dependencies = [
  "futures",
  "handlebars",
  "log 0.4.14",
- "openssl",
  "paperclip",
  "rand 0.8.3",
  "rust-arenaclient",

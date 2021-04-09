@@ -8,7 +8,7 @@ use actix_web::client::{Client, Connector};
 use actix_web::error::{ErrorBadGateway, ErrorInternalServerError};
 pub use actix_web::{App, HttpResponse, HttpServer, Result};
 use handlebars::Handlebars;
-use openssl::ssl::{SslConnector, SslMethod};
+// use openssl::ssl::{SslConnector, SslMethod};
 use paperclip::actix::api_v2_operation;
 use paperclip::actix::web::{Bytes, Form, Json};
 use rand::prelude::IteratorRandom;
@@ -140,36 +140,36 @@ pub async fn handle_data(form: Form<SettingsFormData>) -> Result<HttpResponse> {
         Err(e) => Err(actix_web::error::ErrorInternalServerError(e.to_string())),
     }
 }
-#[api_v2_operation]
-pub async fn get_arena_bots() -> Result<Json<AiarenaApiBots>> {
-    if let Ok(settings_data) = SettingsFormData::load_from_file() {
-        let builder = SslConnector::builder(SslMethod::tls())
-            .map_err(|e| ErrorInternalServerError(e.to_string()))?;
-
-        let client = Client::builder()
-            .connector(Connector::new().ssl(builder.build()).finish())
-            .finish();
-        let response = client
-            .get(format!(
-                "{}{}",
-                AIARENA_URL, r#"/api/bots/?&format=json&bot_zip_publicly_downloadable=true"#
-            )) // <- Create request builder
-            .header("User-Agent", "Actix-web")
-            .header(
-                "Authorization",
-                format!("Token  {}", settings_data.api_token),
-            )
-            .send() // <- Send http request
-            .await;
-        let resp = response.map(|mut x| x.body());
-        let b = resp?.await?;
-        let s =
-            String::from_utf8(b.to_vec()).map_err(|e| ErrorInternalServerError(e.to_string()))?;
-        let aiarena_api_bots: AiarenaApiBots = serde_json::from_str(&s).unwrap();
-        return Ok(Json(aiarena_api_bots));
-    }
-    Err(ErrorBadGateway("Could not connect to AiArena API"))
-}
+// #[api_v2_operation]
+// pub async fn get_arena_bots() -> Result<Json<AiarenaApiBots>> {
+//     if let Ok(settings_data) = SettingsFormData::load_from_file() {
+//         let builder = SslConnector::builder(SslMethod::tls())
+//             .map_err(|e| ErrorInternalServerError(e.to_string()))?;
+//
+//         let client = Client::builder()
+//             .connector(Connector::new().ssl(builder.build()).finish())
+//             .finish();
+//         let response = client
+//             .get(format!(
+//                 "{}{}",
+//                 AIARENA_URL, r#"/api/bots/?&format=json&bot_zip_publicly_downloadable=true"#
+//             )) // <- Create request builder
+//             .header("User-Agent", "Actix-web")
+//             .header(
+//                 "Authorization",
+//                 format!("Token  {}", settings_data.api_token),
+//             )
+//             .send() // <- Send http request
+//             .await;
+//         let resp = response.map(|mut x| x.body());
+//         let b = resp?.await?;
+//         let s =
+//             String::from_utf8(b.to_vec()).map_err(|e| ErrorInternalServerError(e.to_string()))?;
+//         let aiarena_api_bots: AiarenaApiBots = serde_json::from_str(&s).unwrap();
+//         return Ok(Json(aiarena_api_bots));
+//     }
+//     Err(ErrorBadGateway("Could not connect to AiArena API"))
+// }
 #[allow(dead_code)]
 async fn test(bytes: Bytes) -> HttpResponse {
     match String::from_utf8(bytes.to_vec()) {
