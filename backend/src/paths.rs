@@ -33,7 +33,7 @@ pub fn find_available_maps() -> Vec<String> {
         for inner in fs::read_dir(outer_path).expect("Could not iterate map subdirectory") {
             let path = inner.unwrap().path();
             if !path.is_dir() {
-                if path.extension().unwrap() == ".SC2Map" {
+                if path.extension().unwrap() == "SC2Map" {
                     let relative = path.strip_prefix(&mapdir).unwrap();
                     maps.push(normalize_map_name(relative));
                 } else {
