@@ -1,12 +1,12 @@
 //! Simple websocket client.
-use std::thread;
-use std::time::Duration;
-
 use crate::routes::CLIENT_PORT;
 use actix::io::SinkWrite;
 use actix::*;
 use actix_codec::Framed;
 use actix_web::rt::{Arbiter, System};
+use log::{debug, error, trace};
+use std::thread;
+use std::time::Duration;
 
 use actix_web::web::Bytes;
 use awc::{
@@ -15,7 +15,6 @@ use awc::{
     BoxedSocket, Client,
 };
 use futures::stream::{SplitSink, StreamExt};
-
 use std::error::Error;
 
 #[derive(Message)]
@@ -55,7 +54,7 @@ impl Supervisor {
                 .header("supervisor", "true")
                 .connect()
                 .await
-                .map_err(|x| println!("{:?}", x))
+                .map_err(|x| error!("{:?}", x))
                 .map(|(_response, frame)| {
                     let (sink, stream) = frame.split();
                     let addr = Supervisor::create(|ctx| {
@@ -67,7 +66,6 @@ impl Supervisor {
                     });
                     thread::spawn(move || loop {
                         while let Ok(msg) = supervisor_receiver.try_recv() {
-                            println!("supervisor receiver");
                             addr.do_send(ClientCommand(msg))
                         }
                     })
@@ -89,7 +87,7 @@ impl Actor for Supervisor {
     }
 
     fn stopped(&mut self, _: &mut Context<Self>) {
-        println!("Disconnected");
+        debug!("Server Disconnected");
 
         // Stop application on disconnect
         System::current().stop();
@@ -113,7 +111,7 @@ impl Handler<ClientCommand> for Supervisor {
     type Result = ();
 
     fn handle(&mut self, msg: ClientCommand, _ctx: &mut Context<Self>) {
-        println!("sending message:{}", &msg.0);
+        trace!("sending message:{}", &msg.0);
         self.sink_write.write(Message::Text(msg.0));
     }
 }
@@ -122,21 +120,21 @@ impl Handler<ClientCommand> for Supervisor {
 impl StreamHandler<Result<Frame, WsProtocolError>> for Supervisor {
     fn handle(&mut self, msg: Result<Frame, WsProtocolError>, _: &mut Context<Self>) {
         if let Ok(Frame::Text(txt)) = msg {
-            println!("Server:{:?}", txt);
+            trace!("Server:{:?}", txt);
             self.server_sender
                 .send(String::from_utf8(txt.to_vec()).unwrap())
                 .unwrap();
         } else if let Ok(Frame::Pong(_)) = msg {
-            println!("Server: Pong")
+            trace!("Server: Pong")
         }
     }
 
     fn started(&mut self, _ctx: &mut Context<Self>) {
-        println!("Connected");
+        debug!("StreamHandler Connected");
     }
 
     fn finished(&mut self, ctx: &mut Context<Self>) {
-        println!("Server disconnected");
+        debug!("StreamHandler disconnected");
         ctx.stop()
     }
 }

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::fs::File;
 use std::io::BufReader;
 use std::path::{Path, PathBuf};
-use std::process::{Child, Command};
+use std::process::{Child, Command, Stdio};
 
 pub fn start_bot(
     bot_name: String,
@@ -49,11 +49,13 @@ pub fn start_bot(
     };
 
     let stderr_log = File::create(bot_path.join("data").join("stderr.log")).unwrap();
+    let stdout_log = stderr_log.try_clone()?;
     let mut command = Command::new(start_command);
     let c = command
         .args(commands)
         .current_dir(&bot_path)
-        .stdout(stderr_log);
+        .stdout(Stdio::from(stdout_log))
+        .stderr(Stdio::from(stderr_log));
 
     Ok(c.spawn()?)
 }

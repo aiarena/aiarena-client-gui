@@ -42,6 +42,7 @@ async fn main() {
         .service(web::resource("/get_arena_bots").route(web::get().to(get_arena_bots)))
         .service(web::resource("/run_games").route(web::post().to(run_games)))
         .service(web::resource("/handle_data").route(web::post().to(handle_data)))
+        .service(web::resource("/get_results").route(web::get().to(get_results)))
         .with_json_spec_at("/api")
         .build()
     })

@@ -1,6 +1,7 @@
 use crate::api_structs::{AiarenaApiBots, Bots, Maps};
 use crate::bots::start_bot;
 use crate::paths::{find_available_bots, find_available_maps};
+use crate::results_data::{save_to_file, FileResultsData, GameResult, ResultsData, RESULTS_FILE};
 use crate::run_game_data::RunGameData;
 use crate::settings_data::{settings_file_exists, settings_okay, SettingsFormData};
 use crate::supervisor::{Supervisor, SupervisorChannel};
@@ -8,10 +9,12 @@ use actix_web::client::Client;
 use actix_web::error::{ErrorBadGateway, ErrorInternalServerError};
 pub use actix_web::{App, HttpResponse, HttpServer, Result};
 use handlebars::Handlebars;
+use log::error;
 use paperclip::actix::api_v2_operation;
 use paperclip::actix::web::{Bytes, Form, Json};
 use rand::prelude::IteratorRandom;
 use rust_ac::server::RustServer;
+use std::fs::File;
 use std::thread::JoinHandle;
 
 const AIARENA_URL: &str = "https://aiarena.net";
@@ -60,9 +63,12 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                 for bot1 in &run_game_data.bot1 {
                     for bot2 in &run_game_data.bot2 {
                         let mut config = rust_ac::config::Config::new();
+                        let max_match_id = FileResultsData::load_from_file()
+                            .unwrap_or_default()
+                            .max_match_id();
                         config.map = map.clone();
                         config.disable_debug = !matches!(settings_data.allow_debug.as_str(), "On");
-                        config.match_id = 0; //TODO: increment match_id based on results and append to replay_name
+                        config.match_id = max_match_id;
                         config.player1 = bot1.clone();
                         config.player2 = bot2.clone();
                         config.real_time = run_game_data.realtime;
@@ -75,7 +81,7 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                             channel
                                 .send(str_config)
                                 .map_err(|e| {
-                                    println!("{:?}", e.to_string());
+                                    error!("{:?}", e.to_string());
                                     return ErrorInternalServerError(e.to_string());
                                 })
                                 .unwrap();
@@ -94,8 +100,26 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                             );
 
                             let _rec = channel.recv();
-                            let result = channel.recv();
-                            println!("Result: {}", result.unwrap());
+                            let result_string = channel.recv();
+                            let results_data: ResultsData =
+                                serde_json::from_str(&result_string.unwrap()).unwrap();
+                            let game_result: GameResult = results_data.into();
+                            match FileResultsData::load_from_file() {
+                                Ok(mut x) => {
+                                    x.add_result(game_result.clone());
+                                    if let Err(e) = x.save_to_file() {
+                                        error!("{}", e.to_string());
+                                    }
+                                }
+                                Err(_) => {
+                                    let mut frd = FileResultsData::default();
+                                    frd.add_result(game_result);
+
+                                    if let Err(e) = save_to_file(&frd, RESULTS_FILE) {
+                                        error!("{}", e.to_string());
+                                    }
+                                }
+                            };
                         }
                     }
                 }
@@ -182,4 +206,19 @@ pub async fn get_settings() -> Result<Json<SettingsFormData>> {
         let settings_data = SettingsFormData::default();
         Ok(Json(settings_data))
     }
+}
+
+#[api_v2_operation]
+pub async fn get_results() -> Result<Json<FileResultsData>> {
+    if let Ok(settings_data) = FileResultsData::load_from_file() {
+        Ok(Json(settings_data))
+    } else {
+        let settings_data = FileResultsData::default();
+        Ok(Json(settings_data))
+    }
+}
+pub async fn clear_results() -> Result<HttpResponse> {
+    let results_file = File::open(RESULTS_FILE)?;
+    results_file.set_len(0)?;
+    Ok(HttpResponse::Ok().finish())
 }

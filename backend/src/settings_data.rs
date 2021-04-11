@@ -2,6 +2,8 @@ use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
 
 use actix_web::Result;
+use log::error;
+use std::env::var_os;
 use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
@@ -36,7 +38,19 @@ impl SettingsFormData {
         f.read_to_string(&mut contents)?;
 
         // Deserialize and print Rust data structure.
-        let data: SettingsFormData = serde_json::from_str(&contents)?;
+        let mut data: SettingsFormData = serde_json::from_str(&contents)?;
+        if data.sc2_directory_location.is_empty() {
+            data.sc2_directory_location = match var_os("SC2_PROXY_BASE") {
+                Some(x) => Path::new(&x).display().to_string(),
+                None => match var_os("SC2PATH") {
+                    Some(x) => Path::new(&x).display().to_string(),
+                    None => "".to_string(),
+                },
+            };
+            if let Err(e) = data.save_to_file() {
+                error!("{}", e.to_string());
+            }
+        }
 
         Ok(data)
     }

@@ -5,6 +5,7 @@ package-lock.json
 
 # Quasar core related directories
 /dist
+/.quasar
 
 # Cordova related directories and files
 /src-cordova/node_modules
@@ -31,3 +32,8 @@ yarn-error.log*
 *.ntvs*
 *.njsproj
 *.sln
+
+
+# Runtime files
+*/settings.json
+*/results.json

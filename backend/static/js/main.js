@@ -6,7 +6,7 @@ function generateDynamicTable() {
 
       dataType: "json"
     }).done(function(data) {
-      var myResults = data;
+      var myResults = data["Results"];
 
       var noOfResults = myResults.length;
 
