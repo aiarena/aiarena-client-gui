@@ -47,10 +47,11 @@ async fn main() -> std::io::Result<()> {
             .service(web::resource("/run_games").route(web::post().to(run_games)))
             .service(web::resource("/handle_data").route(web::post().to(handle_data)))
             .service(web::resource("/get_results").route(web::get().to(get_results)))
+            .service(web::resource("/clear_results").route(web::post().to(clear_results)))
             .with_json_spec_at("/api")
             .build()
     })
-    .bind("127.0.0.1:8080")?
+    .bind("127.0.0.1:8082")?
     .run()
     .await
 }
