@@ -4,6 +4,7 @@ mod paths;
 mod results_data;
 pub mod routes;
 mod run_game_data;
+pub mod server;
 mod settings_data;
 mod supervisor;
 

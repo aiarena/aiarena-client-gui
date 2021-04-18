@@ -25,12 +25,18 @@ handlebars = { version = "3.0.0", features = ["dir_source"] }
 serde_json = "1.0"
 actix-web-static-files = "3.0"
 awc = "2"
-rust-arenaclient = {version="*", git="https://github.com/aiarena/rust-arenaclient.git", branch="client-frontend"}
 futures = "0.3.13"
 serde = "1.0.125"
 rustls = "0.19.0"
 crossbeam = "0.8.0"
 paperclip = { git="https://github.com/wafflespeanut/paperclip.git", features = ["actix", "paperclip-macros"] }
+
+[dependencies.rust-arenaclient]
+version = "*"
+git="https://github.com/aiarena/rust-arenaclient.git"
+branch="client-frontend"
+default-features = false
+features = ["no-pyo3"]
 
 [build-dependencies]
 actix-web-static-files = "3.0"

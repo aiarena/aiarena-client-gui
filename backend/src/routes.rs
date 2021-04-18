@@ -48,14 +48,20 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
         if RUST_SERVER_HANDLE.is_none() {
             RUST_SERVER_HANDLE =
                 Some(RustServer::new(format!("127.0.0.1:{}", CLIENT_PORT).as_str()).run());
-            SUPERVISOR_CHANNEL =
-                Some(Supervisor::connect().map_err(|e| ErrorInternalServerError(e.to_string()))?);
+            // SUPERVISOR_CHANNEL =
+            //     Some(Supervisor::connect().map_err(|e| ErrorInternalServerError(e.to_string()))?);
         }
     }
     let settings_data = SettingsFormData::load_from_file()?;
     let maps = find_available_maps();
     std::thread::spawn(move || {
         for _ in 0..run_game_data.iterations {
+            let mut channel = Supervisor::connect().unwrap();
+            // unsafe {
+            //     SUPERVISOR_CHANNEL = Supervisor::connect()
+            //         .map_err(|e| ErrorInternalServerError(e.to_string()))
+            //         .ok();
+            // }
             for mut map in &run_game_data.map {
                 if map == "Random" {
                     map = maps.iter().choose(&mut rand::thread_rng()).unwrap();
@@ -75,35 +81,40 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                         config.visualize = run_game_data.visualize;
                         config.max_game_time = settings_data.max_game_time as u32;
                         let str_config = serde_json::to_string(&config).unwrap();
-                        unsafe {
-                            let channel = SUPERVISOR_CHANNEL.as_mut().unwrap();
-                            let _rec = channel.recv();
-                            channel
-                                .send(str_config)
-                                .map_err(|e| {
-                                    error!("{:?}", e.to_string());
-                                    return ErrorInternalServerError(e.to_string());
-                                })
-                                .unwrap();
+                        // unsafe {
+                        //     let channel = SUPERVISOR_CHANNEL.as_mut().unwrap();
+                        let _rec = channel.recv();
+                        channel
+                            .send(str_config)
+                            .map_err(|e| {
+                                println!("1{:?}", e.to_string());
+                                return ErrorInternalServerError(e.to_string());
+                            })
+                            .unwrap();
 
-                            let _rec = channel.recv();
-                            let _c = start_bot(
-                                bot1.clone(),
-                                settings_data.bot_directory_location.clone(),
-                                "".to_string(),
-                            );
-                            let _rec = channel.recv();
-                            let _c2 = start_bot(
-                                bot2.clone(),
-                                settings_data.bot_directory_location.clone(),
-                                "".to_string(),
-                            );
-
-                            let _rec = channel.recv();
-                            let result_string = channel.recv();
-                            let results_data: ResultsData =
-                                serde_json::from_str(&result_string.unwrap()).unwrap();
-                            let game_result: GameResult = results_data.into();
+                        let _rec = channel.recv();
+                        let _c = start_bot(
+                            bot1.clone(),
+                            settings_data.bot_directory_location.clone(),
+                            "".to_string(),
+                        );
+                        let _rec = channel.recv();
+                        let _c2 = start_bot(
+                            bot2.clone(),
+                            settings_data.bot_directory_location.clone(),
+                            "".to_string(),
+                        );
+                        let mut results_data: Option<ResultsData> = None;
+                        for msg in channel.iter() {
+                            println!("{:?}", msg.clone());
+                            if msg.contains("MatchID") {
+                                println!("\n\n\n\nOk");
+                                results_data = serde_json::from_str(&msg).ok();
+                                break;
+                            }
+                        }
+                        if let Some(data) = results_data {
+                            let game_result: GameResult = data.into();
                             match FileResultsData::load_from_file() {
                                 Ok(mut x) => {
                                     x.add_result(game_result.clone());
@@ -121,6 +132,8 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                                 }
                             };
                         }
+                        // }
+                        channel.send("Disconnect".to_string());
                     }
                 }
             }
@@ -217,6 +230,7 @@ pub async fn get_results() -> Result<Json<FileResultsData>> {
         Ok(Json(settings_data))
     }
 }
+#[api_v2_operation]
 pub async fn clear_results() -> Result<HttpResponse> {
     let results_file = File::open(RESULTS_FILE)?;
     results_file.set_len(0)?;

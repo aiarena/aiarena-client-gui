@@ -108,16 +108,4 @@ mod tests {
         let bot = read_ladderbots_json(ladder_bots_json).unwrap();
         assert!(!bot.name.is_empty())
     }
-    #[test]
-    fn test_test_launch() {
-        let x = start_bot(
-            "basic_bot".parse().unwrap(),
-            r#"D:\Desktop\AIARENA\aiarena-client\aiarena-test-bots"#
-                .parse()
-                .unwrap(),
-            "".parse().unwrap(),
-        );
-        assert!(x.is_ok());
-        std::thread::sleep(Duration::from_secs(100))
-    }
 }

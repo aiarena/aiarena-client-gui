@@ -9,7 +9,7 @@ use std::path::Path;
 
 pub static RESULTS_FILE: &str = "results.json";
 
-#[derive(Deserialize, Serialize, Debug, Default)]
+#[derive(Deserialize, Serialize, Debug, Default, Clone)]
 pub struct ResultsData {
     #[serde(default, rename = "Result")]
     results: HashMap<String, String>,
@@ -31,6 +31,29 @@ pub struct ResultsData {
     match_id: i64,
 }
 impl ResultsData {
+    pub fn new(
+        results: HashMap<String, String>,
+        game_time: u64,
+        game_time_seconds: f64,
+        average_frame_time: HashMap<String, Option<f64>>,
+        status: String,
+        bots: HashMap<u8, String>,
+        map: String,
+        replay_path: String,
+        match_id: i64,
+    ) -> Self {
+        Self {
+            results,
+            game_time,
+            game_time_seconds,
+            average_frame_time,
+            status,
+            bots,
+            map,
+            replay_path,
+            match_id,
+        }
+    }
     pub fn get_bot1(&self) -> String {
         self.bots.get(&1).unwrap().clone()
     }
@@ -81,32 +104,32 @@ impl ResultsData {
     }
 }
 
-impl Into<GameResult> for ResultsData {
-    fn into(self) -> GameResult {
-        let (winner, result) = self.get_winner_result();
-        let p1 = self.get_bot1();
-        let p2 = self.get_bot2();
-        GameResult {
-            match_id: self.match_id,
-            bot1: self.get_bot1(),
-            bot2: self.get_bot2(),
+impl From<ResultsData> for GameResult {
+    fn from(results_data: ResultsData) -> Self {
+        let (winner, result) = results_data.get_winner_result();
+        let p1 = results_data.get_bot1();
+        let p2 = results_data.get_bot2();
+        Self {
+            match_id: results_data.match_id,
+            bot1: results_data.get_bot1(),
+            bot2: results_data.get_bot2(),
             winner,
-            map: self.map,
+            map: results_data.map,
             result,
-            game_time: self.game_time,
+            game_time: results_data.game_time,
             game_time_formatted: "".to_string(),
             time_stamp: "".to_string(),
-            bot1_avg_frame: self
+            bot1_avg_frame: results_data
                 .average_frame_time
                 .get(&p1)
                 .unwrap_or(&Some(0.0f64))
                 .unwrap_or(0.0f64),
-            bot2_avg_frame: self
+            bot2_avg_frame: results_data
                 .average_frame_time
                 .get(&p2)
                 .unwrap_or(&Some(0.0f64))
                 .unwrap_or(0.0f64),
-            replay_path: self.replay_path,
+            replay_path: results_data.replay_path,
         }
     }
 }
@@ -189,5 +212,70 @@ impl FileResultsData {
             .map(|x| x.match_id)
             .max()
             .unwrap_or(0i64)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::results_data::{GameResult, ResultsData};
+    use std::collections::HashMap;
+
+    fn results_data_setup() -> ResultsData {
+        let mut results = HashMap::new();
+        let mut average_frame_time = HashMap::new();
+        let mut bots = HashMap::new();
+        results.insert("Bot1".to_string(), "Victory".to_string());
+        results.insert("Bot2".to_string(), "Defeat".to_string());
+        average_frame_time.insert("Bot1".to_string(), Some(0.1));
+        average_frame_time.insert("Bot2".to_string(), Some(0.2));
+        bots.insert(1, "Bot1".to_string());
+        bots.insert(2, "Bot2".to_string());
+
+        ResultsData::new(
+            results,
+            60486,
+            2700.267857142857,
+            average_frame_time,
+            "Complete".to_string(),
+            bots,
+            "AutomatonLE".to_string(),
+            "/empty/path".to_string(),
+            1,
+        )
+    }
+    #[test]
+    fn test_get_bot1() {
+        let results_data = results_data_setup();
+        assert_eq!(results_data.get_bot1(), "Bot1".to_string())
+    }
+    #[test]
+    fn test_get_bot2() {
+        let results_data = results_data_setup();
+        assert_eq!(results_data.get_bot2(), "Bot2".to_string())
+    }
+    #[test]
+    fn test_get_map() {
+        let results_data = results_data_setup();
+        assert_eq!(results_data.get_map(), "AutomatonLE".to_string())
+    }
+    #[test]
+    fn test_get_winner_result() {
+        let results_data = results_data_setup();
+        let winner_result = results_data.get_winner_result();
+        assert_eq!(winner_result.0, "Bot1");
+        assert_eq!(winner_result.1, "Player1Win");
+    }
+    #[test]
+    fn test_game_result_conversion() {
+        let results_data = results_data_setup();
+        let game_result: GameResult = results_data.clone().into();
+        assert_eq!(game_result.match_id, results_data.match_id);
+        assert_eq!(game_result.map, results_data.get_map());
+        assert_eq!(game_result.result, results_data.get_winner_result().1);
+        assert_eq!(game_result.replay_path, results_data.replay_path);
+        assert_eq!(game_result.game_time, results_data.game_time);
+        assert_eq!(game_result.winner, results_data.get_winner_result().0);
+        assert_eq!(game_result.bot1, results_data.get_bot1());
+        assert_eq!(game_result.bot2, results_data.get_bot2());
     }
 }
