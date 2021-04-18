@@ -11,6 +11,9 @@ mod supervisor;
 extern crate serde_json;
 
 #[macro_use]
+extern crate log;
+
+#[macro_use]
 extern crate serde;
 
 pub use actix_web::{App, HttpResponse, HttpServer, Result};
@@ -23,5 +26,3 @@ async fn main() -> std::io::Result<()> {
 
     get_server("./static/")?.await
 }
-#[macro_use]
-extern crate rust_ac;

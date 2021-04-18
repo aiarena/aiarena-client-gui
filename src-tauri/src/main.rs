@@ -4,10 +4,8 @@
 )]
 
 mod cmd;
-use aiarena_client_gui_backend_lib::actix_web_static_files;
-use aiarena_client_gui_backend_lib::routes::*;
+use aiarena_client_gui_backend_lib::actix_web;
 use aiarena_client_gui_backend_lib::server::get_server;
-use aiarena_client_gui_backend_lib::{actix_web, web, Handlebars, HttpServer, OpenApiExt};
 use std::sync::mpsc;
 use std::thread;
 
@@ -21,7 +19,7 @@ async fn main() {
   thread::spawn(move || {
     let sys = actix_web::rt::System::new("aiarena-client-gui-backend");
 
-    let server = get_server("../backend/static/")?;
+    let server = get_server("../backend/static/").unwrap();
 
     let _ = server_tx.send(server);
     let _ = sys.run();

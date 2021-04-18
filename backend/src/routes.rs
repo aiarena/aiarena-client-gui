@@ -4,7 +4,7 @@ use crate::paths::{find_available_bots, find_available_maps};
 use crate::results_data::{save_to_file, FileResultsData, GameResult, ResultsData, RESULTS_FILE};
 use crate::run_game_data::RunGameData;
 use crate::settings_data::{settings_file_exists, settings_okay, SettingsFormData};
-use crate::supervisor::{Supervisor, SupervisorChannel};
+use crate::supervisor::Supervisor;
 use actix_web::client::Client;
 use actix_web::error::{ErrorBadGateway, ErrorInternalServerError};
 pub use actix_web::{App, HttpResponse, HttpServer, Result};
@@ -18,7 +18,6 @@ use std::fs::File;
 use std::thread::JoinHandle;
 
 const AIARENA_URL: &str = "https://aiarena.net";
-static mut SUPERVISOR_CHANNEL: Option<SupervisorChannel> = None;
 static mut RUST_SERVER_HANDLE: Option<JoinHandle<()>> = None;
 pub const CLIENT_PORT: i32 = 8642;
 
@@ -132,7 +131,6 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                                 }
                             };
                         }
-                        // }
                         channel.send("Disconnect".to_string());
                     }
                 }

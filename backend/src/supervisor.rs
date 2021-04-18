@@ -1,27 +1,14 @@
 //! Simple websocket client.
 use crate::routes::CLIENT_PORT;
-use actix::io::SinkWrite;
 use actix::*;
-use actix_codec::Framed;
-use actix_web::rt::{Arbiter, System};
-use actix_web::web::Bytes;
-// use awc::{
-//     error::WsProtocolError,
-//     ws::{Codec, Frame},
-//     BoxedSocket, Client,
-// };
 use crossbeam::channel::Iter;
-use futures::stream::{SplitSink, StreamExt};
 use log::{debug, error, trace};
 use rust_ac::websocket::header::{Header, HeaderFormat, Headers};
 use rust_ac::websocket::{ClientBuilder, Message, OwnedMessage};
 use std::error::Error;
 use std::fmt::Formatter;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 use std::thread;
 use std::thread::JoinHandle;
-use std::time::Duration;
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -60,23 +47,21 @@ impl Supervisor {
         headers.set(SupervisorHeader {
             string: "false".to_string(),
         });
-        let mut client = ClientBuilder::new(&format!("ws://127.0.0.1:{}", CLIENT_PORT))
+        let client = ClientBuilder::new(&format!("ws://127.0.0.1:{}", CLIENT_PORT))
             .map_err(|e| e.to_string())?
             .custom_headers(&headers)
             .connect_insecure()
             .map_err(|x| {
                 println!("{:?}", x);
-                return x;
+                x
             })?;
         let (mut receiver, mut sender) = client.split().unwrap();
-        let l = thread::spawn(move || loop {
-            if let Ok(OwnedMessage::Text(msg)) = receiver.recv_message() {
+        let _l = thread::spawn(move || {
+            while let Ok(OwnedMessage::Text(msg)) = receiver.recv_message() {
                 println!("To_Send: {}", msg);
                 if let Err(e) = server_sender.send(msg) {
                     error!("{}", e.to_string())
                 };
-            } else {
-                break;
             }
         });
         let join_handle = thread::spawn(move || loop {
@@ -203,7 +188,7 @@ impl Header for SupervisorHeader {
         "supervisor"
     }
 
-    fn parse_header(raw: &[Vec<u8>]) -> rust_ac::websocket::header::Result<Self> {
+    fn parse_header(_raw: &[Vec<u8>]) -> rust_ac::websocket::header::Result<Self> {
         Ok(Self {
             string: "true".to_string(),
         })
