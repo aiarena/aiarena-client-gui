@@ -6,8 +6,15 @@
 mod cmd;
 use aiarena_client_gui_backend_lib::actix_web;
 use aiarena_client_gui_backend_lib::server::get_server;
+use aiarena_client_gui_backend_lib::Cors;
+use serde::Serialize;
 use std::sync::mpsc;
 use std::thread;
+
+#[derive(Serialize)]
+struct Reply {
+  data: String,
+}
 
 #[actix_web::main]
 async fn main() {
@@ -26,24 +33,13 @@ async fn main() {
   });
 
   let server = server_rx.recv().unwrap();
-  tauri::AppBuilder::new()
-    .invoke_handler(|_webview, arg| {
-      use cmd::Cmd::*;
-      match serde_json::from_str(arg) {
-        Err(e) => Err(e.to_string()),
-        Ok(command) => {
-          match command {
-            // definitions for your custom commands from Cmd here
-            MyCustomCommand { argument } => {
-              //  your command code
-              println!("{}", argument);
-            }
-          }
-          Ok(())
-        }
-      }
-    })
-    .build()
-    .run();
+
+  tauri::Builder::default()
+    .invoke_handler(tauri::generate_handler![
+      cmd::my_custom_command,
+      cmd::tauri_test
+    ])
+    .run(tauri::generate_context!());
+
   let _ = server.stop(true).await;
 }

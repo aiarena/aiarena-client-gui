@@ -1,15 +1,15 @@
 {
   "build": {
-    "distDir": "../dist/spa",
-    "devPath": "http://localhost:7334",
-    "beforeDevCommand": "quasar dev -p 7334",
+    "distDir": "../build",
+    "devPath": "http://localhost:3000",
+    "beforeDevCommand": "yarn start",
     "beforeBuildCommand": "yarn build"
   },
-  "ctx": {},
+  "package": {
+    "productName": "aiarena-client-gui",
+    "version": "0.1.0"
+  },
   "tauri": {
-    "embeddedServer": {
-      "active": true
-    },
     "bundle": {
       "active": true,
       "targets": "all",
@@ -31,24 +31,37 @@
         "depends": [],
         "useBootstrapper": false
       },
-      "osx": {
+      "macOS": {
         "frameworks": [],
         "minimumSystemVersion": "",
-        "useBootstrapper": false
+        "useBootstrapper": false,
+        "exceptionDomain": "",
+        "signingIdentity": null,
+        "entitlements": null
       },
-      "exceptionDomain": ""
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
     },
     "allowlist": {
       "all": true
     },
-    "window": {
-      "title": "Tauri App"
-    },
     "security": {
       "csp": "default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline'"
     },
-    "inliner": {
+    "updater": {
       "active": false
-    }
+    },
+    "windows": [
+      {
+        "title": "AI-Arena GUI",
+        "width": 800,
+        "height": 600,
+        "resizable": true,
+        "fullscreen": false
+      }
+    ]
   }
 }

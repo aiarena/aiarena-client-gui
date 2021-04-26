@@ -37,3 +37,6 @@ yarn-error.log*
 # Runtime files
 */settings.json
 */results.json
+/build/
+backend/target/*
+src-tauri/target/*

@@ -170,7 +170,7 @@ pub async fn get_bots() -> Json<Bots> {
 #[api_v2_operation]
 pub async fn handle_data(form: Form<SettingsFormData>) -> Result<HttpResponse> {
     match form.save_to_file() {
-        Ok(_) => Ok(HttpResponse::Found().header("Location", "/").finish()),
+        Ok(_) => Ok(HttpResponse::Ok().body("Success".to_string())),
         Err(e) => Err(actix_web::error::ErrorInternalServerError(e.to_string())),
     }
 }

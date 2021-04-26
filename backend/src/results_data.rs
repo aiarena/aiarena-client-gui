@@ -1,11 +1,13 @@
+use actix_web::error::ErrorInternalServerError;
 use actix_web::Result;
+use directories::ProjectDirs;
 use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub static RESULTS_FILE: &str = "results.json";
 
@@ -31,6 +33,16 @@ pub struct ResultsData {
     match_id: i64,
 }
 impl ResultsData {
+    pub fn results_file() -> Result<PathBuf> {
+        let project_dirs = ProjectDirs::from("org", "AIArena", "GUI").ok_or(
+            ErrorInternalServerError("Could not create Project Directory"),
+        )?;
+        if !project_dirs.data_local_dir().exists() {
+            std::fs::create_dir_all(project_dirs.data_local_dir());
+        }
+        println!("{:?}", project_dirs.data_local_dir());
+        Ok(project_dirs.data_local_dir().join(&RESULTS_FILE))
+    }
     pub fn new(
         results: HashMap<String, String>,
         game_time: u64,
@@ -177,10 +189,11 @@ impl FileResultsData {
     #[allow(dead_code)]
     pub fn load_from_file() -> Result<Self, Box<dyn Error>> {
         let mut f: File;
-        if !Path::new(&RESULTS_FILE).exists() {
-            f = File::create(&RESULTS_FILE)?;
+        let results_file = ResultsData::results_file()?;
+        if !results_file.exists() {
+            f = File::create(&results_file)?;
         } else {
-            f = File::open(&RESULTS_FILE)?;
+            f = File::open(&results_file)?;
         }
         let mut contents = String::new();
         f.read_to_string(&mut contents)?;
@@ -193,10 +206,11 @@ impl FileResultsData {
     #[allow(dead_code)]
     pub fn save_to_file(&self) -> Result<(), Box<dyn Error>> {
         let mut f: File;
-        if !Path::new(&RESULTS_FILE).exists() {
-            f = File::create(&RESULTS_FILE)?;
+        let results_file = ResultsData::results_file()?;
+        if !results_file.exists() {
+            f = File::create(results_file)?;
         } else {
-            f = OpenOptions::new().write(true).open(&RESULTS_FILE)?;
+            f = OpenOptions::new().write(true).open(results_file)?;
         }
         // Clear file
         f.set_len(0)?;

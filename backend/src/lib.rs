@@ -9,6 +9,7 @@ mod settings_data;
 mod supervisor;
 
 pub use actix;
+pub use actix_cors::Cors;
 pub use actix_web;
 pub use actix_web::HttpServer;
 pub use actix_web_static_files;

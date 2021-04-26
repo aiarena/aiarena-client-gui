@@ -1,13 +1,15 @@
 use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
 
+use actix_web::error::ErrorInternalServerError;
 use actix_web::Result;
+use directories::{ProjectDirs, UserDirs};
 use log::error;
 use std::env::var_os;
 use std::error::Error;
 use std::fs::{File, OpenOptions};
 use std::io::{Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 static SETTINGS_FILE: &str = "settings.json";
 
@@ -27,12 +29,23 @@ pub struct SettingsFormData {
     pub allow_debug: String,
 }
 impl SettingsFormData {
+    pub fn settings_file() -> Result<PathBuf> {
+        let project_dirs = ProjectDirs::from("org", "AIArena", "GUI").ok_or(
+            ErrorInternalServerError("Could not create Project Directory"),
+        )?;
+        println!("{:?}", project_dirs.data_local_dir());
+        if !project_dirs.data_local_dir().exists() {
+            std::fs::create_dir_all(project_dirs.data_local_dir());
+        }
+        Ok(project_dirs.data_local_dir().join(&SETTINGS_FILE))
+    }
     pub fn load_from_file() -> Result<Self> {
         let mut f: File;
-        if !Path::new(&SETTINGS_FILE).exists() {
-            f = File::create(&SETTINGS_FILE)?;
+        let settings_file = Self::settings_file()?;
+        if !settings_file.exists() {
+            f = File::create(settings_file)?;
         } else {
-            f = File::open(&SETTINGS_FILE)?;
+            f = File::open(settings_file)?;
         }
         let mut contents = String::new();
         f.read_to_string(&mut contents)?;
@@ -56,10 +69,11 @@ impl SettingsFormData {
     }
     pub fn save_to_file(&self) -> Result<(), Box<dyn Error>> {
         let mut f: File;
-        if !Path::new(&SETTINGS_FILE).exists() {
-            f = File::create(&SETTINGS_FILE)?;
+        let settings_file = Self::settings_file()?;
+        if !settings_file.exists() {
+            f = File::create(settings_file)?;
         } else {
-            f = OpenOptions::new().write(true).open(&SETTINGS_FILE)?;
+            f = OpenOptions::new().write(true).open(settings_file)?;
         }
         // Clear file
         f.set_len(0)?;
@@ -76,7 +90,11 @@ pub fn settings_okay() -> bool {
     false
 }
 pub fn settings_file_exists() -> bool {
-    Path::new(&SETTINGS_FILE).exists()
+    if let Ok(settings_file) = SettingsFormData::settings_file() {
+        settings_file.exists()
+    } else {
+        false
+    }
 }
 fn default_max_game_time() -> u64 {
     60480
