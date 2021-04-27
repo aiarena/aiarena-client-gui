@@ -1,9 +1,9 @@
 import React, {Component} from "react";
 import Select from 'react-select'
 import Button from 'react-bootstrap/Button'
+// eslint-disable-next-line no-unused-vars
 import * as bs from 'bootstrap/dist/css/bootstrap.css';
 
-// const axios = require('axios');
 import axios from "axios";
 function changeToDictionary(v) {
     return {value: v, label: v}
@@ -18,10 +18,6 @@ const customStyles = {
         color: state.isSelected ? 'green' : 'black',
         padding: 20,
     }),
-    // control: () => ({
-    //     // none of react-select's styles are passed to <Control />
-    //     width: 200,
-    // }),
     singleValue: (provided, state) => {
         const opacity = state.isDisabled ? 0.5 : 1;
         const transition = 'opacity 300ms';
@@ -52,7 +48,6 @@ class Home extends Component {
     }
 
     componentDidMount() {
-        // axios.defaults.url
         axios.get("http://127.0.0.1:8082/get_bots",)
             .then((data) => {
 
