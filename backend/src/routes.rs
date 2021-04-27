@@ -72,7 +72,7 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                             .unwrap_or_default()
                             .max_match_id();
                         config.map = map.clone();
-                        config.disable_debug = !matches!(settings_data.allow_debug.as_str(), "On");
+                        config.disable_debug = !settings_data.allow_debug;
                         config.match_id = max_match_id;
                         config.player1 = bot1.clone();
                         config.player2 = bot2.clone();
@@ -181,7 +181,8 @@ pub async fn get_arena_bots() -> Result<Json<AiarenaApiBots>> {
         let mut response = client
             .get(format!(
                 "{}{}",
-                AIARENA_URL, r#"/api/bots/?&format=json&bot_zip_publicly_downloadable=true"#
+                AIARENA_URL,
+                r#"/api/bots/?&format=json&bot_zip_publicly_downloadable=true&ordering=name"#
             )) // <- Create request builder
             .header("User-Agent", "Actix-web")
             .header(

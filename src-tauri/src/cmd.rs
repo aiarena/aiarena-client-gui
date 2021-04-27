@@ -1,5 +1,5 @@
+use aiarena_client_gui_backend_lib::project_directory;
 use serde::Deserialize;
-use std::path::PathBuf;
 use tauri::api::dialog::FileDialogBuilder;
 
 #[derive(Debug, Deserialize)]
@@ -24,4 +24,12 @@ pub fn my_custom_command() -> String {
 #[tauri::command]
 pub fn tauri_test() -> bool {
   true
+}
+
+#[tauri::command]
+pub fn get_project_directory() -> String {
+  match project_directory() {
+    Ok(path) => path,
+    Err(e) => e.to_string(),
+  }
 }

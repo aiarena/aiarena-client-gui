@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use actix_web::error::ErrorInternalServerError;
 use actix_web::Result;
-use directories::{ProjectDirs, UserDirs};
+use directories::ProjectDirs;
 use log::error;
 use std::env::var_os;
 use std::error::Error;
@@ -26,16 +26,14 @@ pub struct SettingsFormData {
     #[serde(default = "default_max_game_time")]
     pub max_game_time: u64,
     #[serde(default)]
-    pub allow_debug: String,
+    pub allow_debug: bool,
 }
 impl SettingsFormData {
     pub fn settings_file() -> Result<PathBuf> {
-        let project_dirs = ProjectDirs::from("org", "AIArena", "GUI").ok_or(
-            ErrorInternalServerError("Could not create Project Directory"),
-        )?;
-        println!("{:?}", project_dirs.data_local_dir());
+        let project_dirs = ProjectDirs::from("org", "AIArena", "GUI")
+            .ok_or_else(|| ErrorInternalServerError("Could not create Project Directory"))?;
         if !project_dirs.data_local_dir().exists() {
-            std::fs::create_dir_all(project_dirs.data_local_dir());
+            std::fs::create_dir_all(project_dirs.data_local_dir())?;
         }
         Ok(project_dirs.data_local_dir().join(&SETTINGS_FILE))
     }

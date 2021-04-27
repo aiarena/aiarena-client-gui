@@ -2,7 +2,7 @@
 use crate::routes::CLIENT_PORT;
 use actix::*;
 use crossbeam::channel::Iter;
-use log::{debug, error, trace};
+use log::error;
 use rust_ac::websocket::header::{Header, HeaderFormat, Headers};
 use rust_ac::websocket::{ClientBuilder, Message, OwnedMessage};
 use std::error::Error;

@@ -34,13 +34,11 @@ pub struct ResultsData {
 }
 impl ResultsData {
     pub fn results_file() -> Result<PathBuf> {
-        let project_dirs = ProjectDirs::from("org", "AIArena", "GUI").ok_or(
-            ErrorInternalServerError("Could not create Project Directory"),
-        )?;
+        let project_dirs = ProjectDirs::from("org", "AIArena", "GUI")
+            .ok_or_else(|| ErrorInternalServerError("Could not create Project Directory"))?;
         if !project_dirs.data_local_dir().exists() {
-            std::fs::create_dir_all(project_dirs.data_local_dir());
+            std::fs::create_dir_all(project_dirs.data_local_dir())?;
         }
-        println!("{:?}", project_dirs.data_local_dir());
         Ok(project_dirs.data_local_dir().join(&RESULTS_FILE))
     }
     pub fn new(

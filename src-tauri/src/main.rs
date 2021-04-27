@@ -6,7 +6,6 @@
 mod cmd;
 use aiarena_client_gui_backend_lib::actix_web;
 use aiarena_client_gui_backend_lib::server::get_server;
-use aiarena_client_gui_backend_lib::Cors;
 use serde::Serialize;
 use std::sync::mpsc;
 use std::thread;
@@ -18,7 +17,7 @@ struct Reply {
 
 #[actix_web::main]
 async fn main() {
-  ::std::env::set_var("RUST_LOG", "rust_ac=trace");
+  // ::std::env::set_var("RUST_LOG", "trace");
   env_logger::init();
   let (server_tx, server_rx) = mpsc::channel();
 
@@ -37,9 +36,11 @@ async fn main() {
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
       cmd::my_custom_command,
-      cmd::tauri_test
+      cmd::tauri_test,
+      cmd::get_project_directory
     ])
-    .run(tauri::generate_context!());
+    .run(tauri::generate_context!())
+    .unwrap();
 
   let _ = server.stop(true).await;
 }

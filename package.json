@@ -9,8 +9,7 @@
     "@testing-library/user-event": "12.5.0",
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
-    "chonky": "^2.1.0",
-    "chonky-icon-fontawesome": "^2.1.0",
+    "qs": "^6.10.1",
     "react": "17.0.1",
     "react-bootstrap": "^1.5.2",
     "react-dom": "17.0.1",
@@ -43,9 +42,9 @@
   },
   "devDependencies": {
     "@craco/craco": "6.0.0",
-    "@tauri-apps/tauri-webpack": "0.2.0",
-    "babel-loader": "8.1.0",
+    "@tauri-apps/api": "^1.0.0-beta-rc.3",
     "@tauri-apps/cli": "^1.0.0-beta-rc.2",
-    "@tauri-apps/api": "^1.0.0-beta-rc.3"
+    "@tauri-apps/tauri-webpack": "0.2.0",
+    "babel-loader": "8.1.0"
   }
 }

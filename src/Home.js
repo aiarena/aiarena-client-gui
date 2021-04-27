@@ -34,12 +34,15 @@ class Home extends Component {
     constructor() {
         super();
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.loadAIArenaBots = this.loadAIArenaBots.bind(this);
     }
 
     state = {
         bots: [],
         maps: [],
-        iterations_id: 1
+        iterations_id: 1,
+        ai_arena_bots_loaded: false
     }
 
     handleInputChange(event) {
@@ -69,9 +72,28 @@ class Home extends Component {
         });
     }
     loadAIArenaBots(){
-        axios.get("http://127.0.0.1:8082")
-    }
+        if (!this.state.ai_arena_bots_loaded) {
+            axios.get("http://127.0.0.1:8082/get_arena_bots").then((data) =>{
 
+                let obj = {'bots': this.state.bots};
+                console.log(obj);
+                let results = data.data.results;
+                for (var i =0; i < data.data.count; i++){
+                    console.log(i);
+                    obj.bots.push(changeToDictionary(results[i].name + ' (AI-Arena)'));
+                    console.log(results[i].name + ' (AI-Arena)');
+                }
+                this.setState(obj);
+                console.log(obj);
+                let obj2 = {'ai_arena_bots_loaded': true};
+                this.setState(obj2);
+            }).catch(reason => {console.log(reason);});
+        }
+    }
+    handleSubmit(event) {
+        console.log(event);
+        event.preventDefault();
+    }
     render() {
 
         return (
@@ -81,19 +103,18 @@ class Home extends Component {
                     <h1>Home</h1>
                     <br/>
                     <label className="switch">
-                        <Button variant="outline-light">Load AI-Arena Bots (requires API Token in Settings)</Button>
+                        <Button hidden={this.state.ai_arena_bots_loaded} onClick={this.loadAIArenaBots} variant="outline-light">Load AI-Arena Bots (requires API Token in Settings)</Button>
                         <span className="slider round"/>
                     </label><br/>
-                    <form style={{textAlign: 'left', width: '50%'}} id="my_form_id" action="#"
-                          encType="application/x-www-form-urlencoded">
+                    <form style={{textAlign: 'left', width: '50%'}} id="my_form_id" onSubmit={this.handleSubmit}>
                         <h3 style={{textAlign: 'left'}}>Bot 1: </h3>
-                        <Select label="Bot 1" options={this.state.bots} isMulti styles={customStyles}/>
+                        <Select name="Bot1" label="Bot 1" options={this.state.bots} isMulti styles={customStyles}/>
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Bot 2: </h3>
-                        <Select label="Bot 2" options={this.state.bots} isMulti styles={customStyles}/>
+                        <Select name="Bot2" label="Bot 2" options={this.state.bots} isMulti styles={customStyles}/>
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Map:</h3>
-                        <Select label="Map" options={this.state.maps} isMulti styles={customStyles}/>
+                        <Select id="Map" label="Map" options={this.state.maps} isMulti styles={customStyles}/>
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Iterations: </h3>
                         <div style={{textAlign: 'left'}}>
@@ -111,7 +132,7 @@ class Home extends Component {
                             <span/>
                             <br/><br/>
 
-                            <Button variant={"outline-light"} block>Play</Button>
+                            <Button type="submit" variant={"outline-light"} block>Play</Button>
 
 
                         </div>
