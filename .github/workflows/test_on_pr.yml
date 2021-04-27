@@ -20,7 +20,7 @@ jobs:
       with:
         toolchain: stable
     - name: install tauri bundler
-      run: cargo install tauri-bundler --force
+      run: cargo install tauri-bundler --force --version "1.0.0-beta-rc.1"
     - name: install webkit2gtk (ubuntu only)
       if: matrix.platform == 'ubuntu-latest'
       run: |
