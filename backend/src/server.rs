@@ -1,4 +1,5 @@
 use crate::routes::*;
+use actix_cors::Cors;
 use actix_web::dev::Server;
 pub use actix_web::{App, HttpResponse, HttpServer, Result};
 use handlebars::Handlebars;
@@ -34,6 +35,7 @@ pub fn get_server<P: AsRef<Path>>(handlebars_path: P) -> std::io::Result<Server>
             .service(web::resource("/get_results").route(web::get().to(get_results)))
             .service(web::resource("/clear_results").route(web::post().to(clear_results)))
             .with_json_spec_at("/api")
+            .wrap(Cors::permissive())
             .build()
     })
     .bind("127.0.0.1:8082")?
