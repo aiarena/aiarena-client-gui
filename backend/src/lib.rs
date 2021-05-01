@@ -14,6 +14,7 @@ pub use actix_web::HttpServer;
 pub use actix_web_static_files;
 use directories::ProjectDirs;
 pub use handlebars::Handlebars;
+pub use log;
 pub use paperclip::actix::{web, OpenApiExt};
 
 #[macro_use]

@@ -673,8 +673,8 @@ table {
   width: 90%;
   text-align: center;
   border-collapse: collapse;
-  margin-left: 60px;
-  margin-right: 50px;
+  margin-left: 0;
+  margin-right: 0;
 
 }
 
@@ -689,7 +689,7 @@ td {
   height: 35px;
   padding-left: 10px;
   padding-right: 10px;
-
+  color: #86c232;
 }
 
 tr:nth-child(even) {

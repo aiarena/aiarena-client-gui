@@ -2,6 +2,7 @@ use actix_web::error::ErrorInternalServerError;
 use actix_web::Result;
 use directories::ProjectDirs;
 use paperclip::actix::Apiv2Schema;
+use rust_ac::config::Config;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::error::Error;
@@ -111,6 +112,28 @@ impl ResultsData {
     #[allow(dead_code)]
     pub fn get_map(&self) -> String {
         self.map.clone()
+    }
+    pub fn init_error(config: &Config) -> Self {
+        let mut results = HashMap::new();
+        let mut average_frame_time = HashMap::new();
+        let mut bots = HashMap::new();
+        results.insert(config.player1(), "InitializationError".to_string());
+        results.insert(config.player2(), "InitializationError".to_string());
+        average_frame_time.insert(config.player1(), None);
+        average_frame_time.insert(config.player2(), None);
+        bots.insert(1, config.player1());
+        bots.insert(2, config.player2());
+        Self {
+            results,
+            game_time: 0,
+            game_time_seconds: 0.0,
+            average_frame_time,
+            status: "Completed".to_string(),
+            bots,
+            map: config.map().clone(),
+            replay_path: "".to_string(),
+            match_id: config.match_id,
+        }
     }
 }
 

@@ -5,6 +5,7 @@ import Button from 'react-bootstrap/Button'
 import * as bs from 'bootstrap/dist/css/bootstrap.css';
 
 import axios from "axios";
+import ResultsTable from "./ResultsTable";
 function changeToDictionary(v) {
     return {value: v, label: v}
 }
@@ -27,23 +28,36 @@ const customStyles = {
 }
 
 class Home extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
         this.handleInputChange = this.handleInputChange.bind(this);
-        this.handleSubmit = this.handleSubmit.bind(this);
+        this.onSubmitHandler = this.onSubmitHandler.bind(this);
         this.loadAIArenaBots = this.loadAIArenaBots.bind(this);
+        this.addInputToState = this.addInputToState.bind(this);
+        this.getNewResultsData = this.getNewResultsData.bind(this);
+
     }
 
     state = {
         bots: [],
         maps: [],
-        iterations_id: 1,
-        ai_arena_bots_loaded: false
+        iterations: 1,
+        ai_arena_bots_loaded: false,
+        Results: [],
+        Bot1: [],
+        Bot2: [],
+        Map: [],
+        Visualize: false,
+        Realtime: false
     }
 
     handleInputChange(event) {
         let obj = {};
-        obj[event.target.name] = event.target.value;
+        if (event.target.name === "allow_debug") {
+            obj[event.target.name] = event.target.checked;
+        } else {
+            obj[event.target.name] = event.target.value;
+        }
         this.setState(obj);
     }
 
@@ -65,29 +79,62 @@ class Home extends Component {
             });
             this.setState(obj);
         });
+        this.getNewResultsData();
+
+    }
+    clearResults() {
+        axios.post("http://127.0.0.1:8082/clear_results").catch(reason => console.log(reason));
     }
     loadAIArenaBots(){
         if (!this.state.ai_arena_bots_loaded) {
             axios.get("http://127.0.0.1:8082/get_arena_bots").then((data) =>{
 
                 let obj = {'bots': this.state.bots};
-                console.log(obj);
                 let results = data.data.results;
-                for (var i =0; i < data.data.count; i++){
-                    console.log(i);
+                for (let i =0; i < data.data.count; i++){
+
                     obj.bots.push(changeToDictionary(results[i].name + ' (AI-Arena)'));
-                    console.log(results[i].name + ' (AI-Arena)');
+
                 }
                 this.setState(obj);
-                console.log(obj);
+
                 let obj2 = {'ai_arena_bots_loaded': true};
                 this.setState(obj2);
             }).catch(reason => {console.log(reason);});
         }
     }
-    handleSubmit(event) {
-        console.log(event);
+    getNewResultsData(){
+        axios.get("http://127.0.0.1:8082/get_results").then((data)=>{
+            let obj = data.data;
+            this.setState(obj);
+        });
+    }
+    addInputToState = name => value => {
+        let obj = {};
+        obj[name]= value.map(x => {return x.value})
+        console.log(obj);
+        this.setState(obj);
+    }
+    onSubmitHandler(event) {
         event.preventDefault();
+        console.log(this.state.Bot1);
+        const data = {
+            Bot1: this.state.Bot1,
+            Bot2: this.state.Bot2,
+            Map: this.state.Map,
+            Iterations: this.state.iterations,
+            Visualize: this.state.Visualize,
+            Realtime: this.state.Realtime,
+        };
+        console.log(data);
+        axios({
+            method: 'post',
+            url: 'http://127.0.0.1:8082/run_games',
+            data: data,
+            headers: {
+                'content-type': 'json'
+            }
+        });
     }
     render() {
 
@@ -101,28 +148,28 @@ class Home extends Component {
                         <Button hidden={this.state.ai_arena_bots_loaded} onClick={this.loadAIArenaBots} variant="outline-light">Load AI-Arena Bots (requires API Token in Settings)</Button>
                         <span className="slider round"/>
                     </label><br/>
-                    <form style={{textAlign: 'left', width: '50%'}} id="my_form_id" onSubmit={this.handleSubmit}>
+                    <form style={{textAlign: 'left', width: '50%'}} id="my_form_id" onSubmit={this.onSubmitHandler}>
                         <h3 style={{textAlign: 'left'}}>Bot 1: </h3>
-                        <Select name="Bot1" label="Bot 1" options={this.state.bots} isMulti styles={customStyles}/>
+                        <Select name="Bot1" label="Bot 1" options={this.state.bots} isMulti styles={customStyles} onChange={this.addInputToState('Bot1')}/>
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Bot 2: </h3>
-                        <Select name="Bot2" label="Bot 2" options={this.state.bots} isMulti styles={customStyles}/>
+                        <Select name="Bot2" label="Bot 2" options={this.state.bots} isMulti styles={customStyles} onChange={this.addInputToState('Bot2')} />
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Map:</h3>
-                        <Select id="Map" label="Map" options={this.state.maps} isMulti styles={customStyles}/>
+                        <Select id="Map" label="Map" options={this.state.maps} isMulti styles={customStyles} onChange={this.addInputToState('Map')}/>
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Iterations: </h3>
                         <div style={{textAlign: 'left'}}>
-                            <input type="number" min={1} step={1} value={this.state.iterations_id}
-                                   name="iterations_id" onChange={this.handleInputChange}/>
+                            <input type="number" min={1} step={1} value={this.state.iterations}
+                                   name="iterations" onChange={this.handleInputChange}/>
                         </div>
                         <br/>
                         <div style={{textAlign: 'left'}}>
                             <label>Visualize: </label><br/>
-                            <input id="visualize_id" type="checkbox" name="visualize"/>
+                            <input id="visualize_id" type="checkbox" name="Visualize" checked={this.state.Visualize} onChange={this.handleInputChange}/>
                             <br/>
                             <label>Realtime: </label><br/>
-                            <input id="realtime_id" type="checkbox" name="realtime"/>
+                            <input id="realtime_id" type="checkbox" name="Realtime" checked={this.state.Realtime} onChange={this.handleInputChange}/>
 
                             <span/>
                             <br/><br/>
@@ -141,19 +188,16 @@ class Home extends Component {
                     {/*</div>*/}
                     <div className='Results'>
                         <h2>Results</h2>
-                        <Button id="clear_results" variant={"outline-light"} >Clear Results</Button>
-                        <Button id="refresh_results_id" variant={"outline-light"} >Refresh</Button>
-                        <br/>
-                        <body onLoad="generateDynamicTable()">
-                        <div id="myResults">
-                            <p/>
-                        </div>
-                        </body>
+                        <Button id="clear_results" variant={"outline-light"} onClick={this.clearResults} >Clear Results</Button>
+                        <Button id="refresh_results_id" variant={"outline-light"} onClick={this.getNewResultsData()} >Refresh</Button>
+                        <br/><br/>
+                        <ResultsTable data={(this.state.Results||[])}/>
                     </div>
                 </main>
             </div>
         );
     }
 }
+
 
 export default Home;
