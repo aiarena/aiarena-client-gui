@@ -46,7 +46,28 @@
       }
     },
     "allowlist": {
-      "all": true
+      "fs": {
+        "all": false
+      },
+      "window":{
+        "all": false
+      },
+      "shell": {
+        "all": false
+      },
+      "dialog": {
+        "open": true,
+        "save": false
+      },
+      "http": {
+        "request": false
+      },
+      "notification": {
+        "all": false
+      },
+      "globalShortcut": {
+        "all": false
+      }
     },
     "security": {
       "csp": "default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline'"

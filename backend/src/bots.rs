@@ -96,6 +96,11 @@ pub struct BotJson {
     debug: bool,
 }
 
+#[derive(Clone, Serialize, Deserialize, Debug, Default)]
+pub struct BotConnection {
+    #[serde(rename = "Bot")]
+    bot: String,
+}
 #[cfg(test)]
 mod tests {
     use crate::bots::{read_ladderbots_json, start_bot};
