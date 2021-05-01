@@ -28,7 +28,7 @@ class Settings extends Component {
     }
 
     openFolderDialog(event) {
-        invoke('my_custom_command').then((path) => {
+        invoke('open_file_dialog').then((path) => {
             if (path !== "") {
                 let obj = {event: ""};
                 obj[event] = path;
@@ -67,7 +67,7 @@ class Settings extends Component {
         axios.get("http://127.0.0.1:8082/get_settings",)
             .then((data) => {
                 data.data['game_time'] = this.getGameTimeFromMaxGameTime(data.data.max_game_time);
-                console.log(data.data);
+
                 this.setState(data.data);
             }).catch(console.log);
         invoke('tauri_test').then(enabled => {

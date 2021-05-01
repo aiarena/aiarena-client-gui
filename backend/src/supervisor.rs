@@ -9,6 +9,7 @@ use std::error::Error;
 use std::fmt::Formatter;
 use std::thread;
 use std::thread::JoinHandle;
+use std::time::Duration;
 
 #[derive(Message)]
 #[rtype(result = "()")]
@@ -36,6 +37,12 @@ impl SupervisorChannel {
     }
     pub fn iter(&mut self) -> Iter<'_, String> {
         self.server_receiver.iter()
+    }
+    pub fn recv_timeout(
+        &mut self,
+        secs: u64,
+    ) -> Result<String, crossbeam::channel::RecvTimeoutError> {
+        self.server_receiver.recv_timeout(Duration::from_secs(secs))
     }
 }
 

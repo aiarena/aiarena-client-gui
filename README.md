@@ -33,12 +33,13 @@ Backend [readme](backend/README.md)
   - [x] Windows
   - [ ] MacOS
   - [ ] Linux
-- [ ] Frontend
+- [x] Frontend
 - [ ] Dynamic logging to files for debugging purposes
 - [ ] Rust tests
 - [ ] Quasar tests
 - [ ] CI/CD
 - [ ] Docker File with all bot dependencies
+- [x] Headless mode
 
 #### Required for v1
 - [ ] Download bots from AiArena and run games

@@ -15,7 +15,7 @@ pub enum Cmd {
 }
 
 #[tauri::command]
-pub fn my_custom_command() -> String {
+pub fn open_file_dialog() -> String {
   match FileDialogBuilder::default().pick_folder() {
     None => "".to_string(),
     Some(path) => path.display().to_string(),
