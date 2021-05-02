@@ -186,7 +186,7 @@ pub struct GameResult {
     bot2_avg_frame: f64,
     replay_path: String,
 }
-
+#[allow(dead_code)]
 pub fn save_to_file<T: Serialize>(data: &T, file_name: &str) -> Result<(), Box<dyn Error>> {
     let mut f: File;
     if !Path::new(file_name).exists() {

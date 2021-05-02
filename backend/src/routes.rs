@@ -1,7 +1,7 @@
 use crate::api_structs::{AiarenaApiBots, Bots, Maps};
-use crate::bots::{start_bot, BotConnection};
+use crate::bots::start_bot;
 use crate::paths::{find_available_bots, find_available_maps};
-use crate::results_data::{save_to_file, FileResultsData, GameResult, ResultsData, RESULTS_FILE};
+use crate::results_data::{FileResultsData, GameResult, ResultsData};
 use crate::run_game_data::RunGameData;
 use crate::settings_data::{settings_file_exists, settings_okay, SettingsFormData};
 use crate::supervisor::Supervisor;
@@ -15,7 +15,7 @@ use paperclip::actix::web::{Bytes, Form, Json};
 use rand::prelude::IteratorRandom;
 use rust_ac::server::RustServer;
 use serde_json::Value;
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
 use std::thread::JoinHandle;
 
 const AIARENA_URL: &str = "https://aiarena.net";
@@ -150,7 +150,10 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                                 }
                             };
                         }
-                        channel.send("Disconnect".to_string());
+                        if let Err(e) = channel.send("Disconnect".to_string()) {
+                            error!("{:?}", e.to_string());
+                        }
+
                         debug!("Finished");
                     }
                 }

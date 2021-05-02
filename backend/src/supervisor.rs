@@ -22,7 +22,7 @@ pub struct Supervisor {
 pub struct SupervisorChannel {
     supervisor_sender: crossbeam::channel::Sender<String>,
     server_receiver: crossbeam::channel::Receiver<String>,
-    join_handle: JoinHandle<()>,
+    _join_handle: JoinHandle<()>,
 }
 impl SupervisorChannel {
     pub fn send(&mut self, txt: String) -> Result<(), crossbeam::channel::SendError<String>> {
@@ -74,7 +74,9 @@ impl Supervisor {
         let join_handle = thread::spawn(move || loop {
             if let Ok(msg) = supervisor_receiver.try_recv() {
                 if msg == "Disconnect" {
-                    sender.shutdown_all();
+                    if let Err(e) = sender.shutdown_all() {
+                        error!("{:?}", e.to_string());
+                    }
                     break;
                 }
                 println!("Received: {}", msg);
@@ -117,7 +119,7 @@ impl Supervisor {
         Ok(SupervisorChannel {
             supervisor_sender,
             server_receiver,
-            join_handle,
+            _join_handle: join_handle,
         })
     }
 }
