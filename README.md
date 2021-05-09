@@ -29,30 +29,30 @@ Backend [readme](backend/README.md)
 - [x] Basic functionality (Ability to run games)
 - [x] Existing env detection
 - [x] Replay saving and opening
-- [ ] Multiple OS environment testing
+- [x] Multiple OS environment testing
   - [x] Windows
-  - [ ] MacOS
-  - [ ] Linux
+  - [x] MacOS
+  - [x] Linux (Except for FileDialog)
 - [ ] Frontend
 - [ ] Dynamic logging to files for debugging purposes
 - [ ] Rust tests
 - [ ] Quasar tests
-- [ ] CI/CD
+- [x] CI/CD
 - [ ] Docker File with all bot dependencies
 
 #### Required for v1
-- [ ] Download bots from AiArena and run games
+- [x] Download bots from AiArena and run games
 - [ ] Python virtualenv outside of Docker Container (ensures correct libraries and Python version)
 - [ ] One-Click bot dependency installer
 - [ ] Archon mode
 - [ ] Human vs Bot mode
 - [ ] Real-time game rendering (for Docker games)
-- [ ] Faster builds
+- [x] Faster builds
 
 #### After v1
 - [ ] Allow some website functionality through the app(TBD)
 - [ ] Auto-Updater (opt-in)
 - [ ] Play bot over internet (TBD)
-- [ ] AiArena authentication
+- [ ] Ai-Arena authentication
 - [ ] Real-time updates via websockets (Text-based)
 
