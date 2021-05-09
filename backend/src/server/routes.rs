@@ -1,43 +1,36 @@
-use crate::api_structs::{AiarenaApiBots, Bots, Maps};
-use crate::bots::{start_bot, BotConnection};
-use crate::paths::{find_available_bots, find_available_maps};
-use crate::results_data::{save_to_file, FileResultsData, GameResult, ResultsData, RESULTS_FILE};
-use crate::run_game_data::RunGameData;
-use crate::settings_data::{settings_file_exists, settings_okay, SettingsFormData};
-use crate::supervisor::Supervisor;
-use actix_web::client::Client;
-use actix_web::error::{ErrorBadGateway, ErrorInternalServerError};
-pub use actix_web::{App, HttpResponse, HttpServer, Result};
-use handlebars::Handlebars;
-use log::{debug, error};
-use paperclip::actix::api_v2_operation;
-use paperclip::actix::web::{Bytes, Form, Json};
+use crate::{
+    bot::{aiarena_bots::BotDownloadClient, start_bot},
+    files::{results_data_file::FileResultsData, settings_data_file::SettingsFormData},
+    json_structs::{
+        file_json::JSONFile,
+        results_data::{GameResult, ResultsData},
+        run_game_data::RunGameData,
+    },
+    paths::{find_available_bots, find_available_maps},
+    server::api_structs::{AiarenaApiBots, Bots, Maps},
+    supervisor::Supervisor,
+};
+
+use actix_web::{
+    client::Client,
+    error::{ErrorBadGateway, ErrorInternalServerError},
+    web::{Bytes, Form, Json},
+    HttpResponse, Result,
+};
+use itertools::Itertools;
+use log::{debug, error, info};
 use rand::prelude::IteratorRandom;
 use rust_ac::server::RustServer;
 use serde_json::Value;
-use std::fs::{File, OpenOptions};
+use std::fs::OpenOptions;
+
+use crate::errors::MyError;
 use std::thread::JoinHandle;
 
-const AIARENA_URL: &str = "https://aiarena.net";
+pub const AIARENA_URL: &str = "https://aiarena.net";
 static mut RUST_SERVER_HANDLE: Option<JoinHandle<()>> = None;
 pub const CLIENT_PORT: i32 = 8642;
 
-include!(concat!(env!("OUT_DIR"), "/generated.rs"));
-
-pub async fn index(hb: actix_web::web::Data<Handlebars<'_>>) -> HttpResponse {
-    let data = json!({ "settings_okay": settings_okay() });
-    if settings_file_exists() {
-        let body = hb.render("index", &data).unwrap();
-
-        HttpResponse::Ok().body(body)
-    } else {
-        HttpResponse::Found()
-            .header("Location", "/settings")
-            .finish()
-    }
-}
-#[allow(clippy::needless_return)]
-#[api_v2_operation]
 pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
     let b = String::from_utf8(run_game_data.to_vec()).unwrap();
     let run_game_data: RunGameData = serde_json::from_str(&b)?;
@@ -48,17 +41,55 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                 Some(RustServer::new(format!("127.0.0.1:{}", CLIENT_PORT).as_str()).run());
         }
     }
-    let settings_data = SettingsFormData::load_from_file()?;
+    let settings_data =
+        SettingsFormData::load_from_file().map_err(|e| ErrorInternalServerError(e.to_string()))?;
     let maps = find_available_maps();
+
+    let bot_client = BotDownloadClient::new();
+    let bots: Vec<String> = run_game_data
+        .bot1
+        .clone()
+        .iter()
+        .chain(run_game_data.bot2.clone().iter())
+        .dedup()
+        .filter(|x| x.contains(" (AI-Arena)"))
+        .cloned()
+        .collect();
+
+    // bots.append(&mut run_game_data.bot2.clone());
+    // bots.sort();
+    // bots.dedup();
+    // for bot in bots.iter()
+    // //     .clone()
+    // //     .iter()
+    // //     .chain(run_game_data.bot2.clone().iter())
+    // //     .dedup()
+    // {
+    //     if bot.contains(" (AI-Arena)") {
+    //         futures.push(bot_client.get_and_download_bot_zip(bot.clone()));
+    //     }
+    // }
+    // let r = futures::future::join_all(futures).await;
+    // for (result, bot) in r.iter().zip(bots) {
+    //     info!("{:?} - Download {:?}", bot, result);
+    // }
+    for (bot, result) in bot_client
+        .get_and_download_all(&bots)
+        .await
+        .map_err(MyError::from)?
+    {
+        info!("{:?} - Download {:?}", bot, result);
+    }
+
     std::thread::spawn(move || {
         for _ in 0..run_game_data.iterations {
-            let mut channel = Supervisor::connect().unwrap();
             for mut map in &run_game_data.map {
                 if map == "Random" {
                     map = maps.iter().choose(&mut rand::thread_rng()).unwrap();
                 }
                 for bot1 in &run_game_data.bot1 {
                     for bot2 in &run_game_data.bot2 {
+                        let mut channel = Supervisor::connect().unwrap();
                         let mut results_data: Option<ResultsData> = None;
                         let mut config = rust_ac::config::Config::new();
                         let max_match_id = FileResultsData::load_from_file()
@@ -73,14 +104,12 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                         config.visualize = run_game_data.visualize;
                         config.max_game_time = settings_data.max_game_time as u32;
                         let str_config = serde_json::to_string(&config).unwrap();
-                        // unsafe {
-                        //     let channel = SUPERVISOR_CHANNEL.as_mut().unwrap();
                         let _rec = channel.recv();
                         channel
                             .send(str_config)
                             .map_err(|e| {
-                                println!("1{:?}", e.to_string());
-                                return ErrorInternalServerError(e.to_string());
+                                error!("{:?}", e.to_string());
+                                ErrorInternalServerError(e.to_string())
                             })
                             .unwrap();
 
@@ -116,15 +145,19 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                                     }
                                 }
                                 Err(_) => {
+                                    debug!("Init error. Resetting Supervisor");
                                     results_data = Some(ResultsData::init_error(&config));
+                                    channel.send("Reset".to_string()).unwrap();
+                                    let confirmation = channel.recv();
+                                    debug!("{:?}", confirmation);
                                 }
                             }
                         }
                         if results_data.is_none() {
                             for msg in channel.iter() {
-                                println!("{:?}", msg.clone());
+                                debug!("{:?}", msg.clone());
                                 if msg.contains("MatchID") {
-                                    println!("\n\n\n\nOk");
+                                    debug!("\n\n\n\nOk");
                                     results_data = serde_json::from_str(&msg).ok();
                                     break;
                                 }
@@ -150,7 +183,10 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                                 }
                             };
                         }
-                        channel.send("Disconnect".to_string());
+                        if let Err(e) = channel.send("Disconnect".to_string()) {
+                            error!("{:?}", e.to_string());
+                        }
+
                         debug!("Finished");
                     }
                 }
@@ -161,40 +197,25 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
     Ok(HttpResponse::Ok().finish())
 }
 
-pub async fn settings(hb: actix_web::web::Data<Handlebars<'_>>) -> HttpResponse {
-    let context = json!({});
-    let body = hb.render("settings", &context).unwrap();
-    HttpResponse::Ok().body(body)
-    // Ok(HttpResponse::build(StatusCode::OK).content_type("text/html; charset=utf-8").body(include_str!("../static/settings.html")))
-}
-
-pub async fn watch(hb: actix_web::web::Data<Handlebars<'_>>) -> HttpResponse {
-    let data = json!({});
-    let body = hb.render("watch", &data).unwrap();
-    HttpResponse::Ok().body(body)
-    // Ok(HttpResponse::build(StatusCode::OK).content_type("text/html; charset=utf-8").body(include_str!("../static/index.html")))
-}
-
-#[api_v2_operation]
 pub async fn get_maps() -> Json<Maps> {
     Json(Maps {
         maps: find_available_maps(),
     })
 }
-#[api_v2_operation]
+
 pub async fn get_bots() -> Json<Bots> {
     Json(Bots {
         bots: find_available_bots(),
     })
 }
-#[api_v2_operation]
+
 pub async fn handle_data(form: Form<SettingsFormData>) -> Result<HttpResponse> {
     match form.save_to_file() {
         Ok(_) => Ok(HttpResponse::Ok().body("Success".to_string())),
         Err(e) => Err(actix_web::error::ErrorInternalServerError(e.to_string())),
     }
 }
-#[api_v2_operation]
+
 pub async fn get_arena_bots() -> Result<Json<AiarenaApiBots>> {
     if let Ok(settings_data) = SettingsFormData::load_from_file() {
         let client = Client::default();
@@ -230,7 +251,7 @@ async fn test(bytes: Bytes) -> HttpResponse {
     };
     HttpResponse::Ok().finish()
 }
-#[api_v2_operation]
+
 pub async fn get_settings() -> Result<Json<SettingsFormData>> {
     if let Ok(settings_data) = SettingsFormData::load_from_file() {
         Ok(Json(settings_data))
@@ -240,7 +261,6 @@ pub async fn get_settings() -> Result<Json<SettingsFormData>> {
     }
 }
 
-#[api_v2_operation]
 pub async fn get_results() -> Result<Json<FileResultsData>> {
     if let Ok(results_data) = FileResultsData::load_from_file() {
         Ok(Json(results_data))
@@ -249,9 +269,9 @@ pub async fn get_results() -> Result<Json<FileResultsData>> {
         Ok(Json(results_data))
     }
 }
-#[api_v2_operation]
+
 pub async fn clear_results() -> Result<HttpResponse> {
-    let results_file_path = ResultsData::results_file()?;
+    let results_file_path = FileResultsData::file_path()?;
     let results_file = OpenOptions::new().write(true).open(results_file_path)?;
     results_file.set_len(0)?;
     Ok(HttpResponse::Ok().finish())

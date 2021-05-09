@@ -1,9 +1,12 @@
-use crate::routes::CLIENT_PORT;
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::BufReader;
-use std::path::{Path, PathBuf};
-use std::process::{Child, Command, Stdio};
+use crate::{bot::ladder_bots::read_ladderbots_json, server::routes::CLIENT_PORT};
+use std::{
+    fs::File,
+    path::{Path, PathBuf},
+    process::{Child, Command, Stdio},
+};
+
+pub mod aiarena_bots;
+pub mod ladder_bots;
 
 pub fn start_bot(
     bot_name: String,
@@ -60,57 +63,8 @@ pub fn start_bot(
     Ok(c.spawn()?)
 }
 
-fn read_ladderbots_json(path: PathBuf) -> Result<BotJson, Box<dyn std::error::Error>> {
-    let file = File::open(path)?;
-    let reader = BufReader::new(file);
-    let mut ladder_bots_json: LadderBotsJson = serde_json::from_reader(reader)?;
-    let mut bot: BotJson = Default::default();
-    if ladder_bots_json.bots.is_empty() {
-        Err("ladderbots.json error".into())
-    } else {
-        for (x, y) in ladder_bots_json.bots.iter_mut() {
-            bot = y.clone();
-            bot.name = x.clone();
-        }
-        Ok(bot)
-    }
-}
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
-pub struct LadderBotsJson {
-    #[serde(rename = "Bots")]
-    bots: HashMap<String, BotJson>,
-}
-#[derive(Clone, Serialize, Deserialize, Debug, Default)]
-pub struct BotJson {
-    #[serde(default, skip_deserializing)]
-    name: String,
-    #[serde(rename = "Race")]
-    race: String,
-    #[serde(rename = "Type")]
-    bot_type: String,
-    #[serde(rename = "RootPath")]
-    root_path: String,
-    #[serde(rename = "FileName")]
-    file_name: String,
-    #[serde(rename = "Debug")]
-    debug: bool,
-}
-
 #[derive(Clone, Serialize, Deserialize, Debug, Default)]
 pub struct BotConnection {
     #[serde(rename = "Bot")]
     bot: String,
-}
-#[cfg(test)]
-mod tests {
-    use crate::bots::{read_ladderbots_json, start_bot};
-    use std::path::Path;
-    use std::time::Duration;
-
-    #[test]
-    fn test_read_ladderbots() {
-        let ladder_bots_json = Path::new(r#"../backend/test_data/ladderbots.json"#).to_path_buf();
-        let bot = read_ladderbots_json(ladder_bots_json).unwrap();
-        assert!(!bot.name.is_empty())
-    }
 }

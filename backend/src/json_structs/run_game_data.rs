@@ -1,7 +1,6 @@
-use paperclip::actix::Apiv2Schema;
 use serde::{Deserialize, Serialize};
 
-#[derive(Deserialize, Serialize, Debug, Default, Apiv2Schema)]
+#[derive(Deserialize, Serialize, Debug, Default)]
 pub struct RunGameData {
     #[serde(rename = "Bot1")]
     pub bot1: Vec<String>,

@@ -1,10 +1,10 @@
 #![allow(dead_code)]
 
-use crate::paths;
-use crate::settings_data::SettingsFormData;
+use crate::{
+    files::settings_data_file::SettingsFormData, json_structs::file_json::JSONFile, paths,
+};
 use rust_ac::paths::*;
-use std::fs;
-use std::path::Path;
+use std::{fs, path::Path};
 
 pub fn normalize_map_name(map_name: &Path) -> String {
     map_name

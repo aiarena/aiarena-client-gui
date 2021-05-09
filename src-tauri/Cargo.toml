@@ -1,7 +1,7 @@
 [package]
 name = "ai-arena-client-gui"
-version = "0.1.0"
-description = "A Tauri App"
+version = "0.2.0"
+description = "AI-Arena GUI"
 authors = [ "you" ]
 license = ""
 repository = ""
