@@ -1,5 +1,5 @@
 use crate::api_structs::{AiarenaApiBots, Bots, Maps};
-use crate::bots::start_bot;
+use crate::bots::{start_bot, BotConnection};
 use crate::paths::{find_available_bots, find_available_maps};
 use crate::results_data::{save_to_file, FileResultsData, GameResult, ResultsData, RESULTS_FILE};
 use crate::run_game_data::RunGameData;
@@ -9,12 +9,13 @@ use actix_web::client::Client;
 use actix_web::error::{ErrorBadGateway, ErrorInternalServerError};
 pub use actix_web::{App, HttpResponse, HttpServer, Result};
 use handlebars::Handlebars;
-use log::error;
+use log::{debug, error};
 use paperclip::actix::api_v2_operation;
 use paperclip::actix::web::{Bytes, Form, Json};
 use rand::prelude::IteratorRandom;
 use rust_ac::server::RustServer;
-use std::fs::File;
+use serde_json::Value;
+use std::fs::{File, OpenOptions};
 use std::thread::JoinHandle;
 
 const AIARENA_URL: &str = "https://aiarena.net";
@@ -34,8 +35,6 @@ pub async fn index(hb: actix_web::web::Data<Handlebars<'_>>) -> HttpResponse {
             .header("Location", "/settings")
             .finish()
     }
-
-    // Ok(HttpResponse::build(StatusCode::OK).content_type("text/html; charset=utf-8").body(include_str!("../static/index.html")))
 }
 #[allow(clippy::needless_return)]
 #[api_v2_operation]
@@ -47,8 +46,6 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
         if RUST_SERVER_HANDLE.is_none() {
             RUST_SERVER_HANDLE =
                 Some(RustServer::new(format!("127.0.0.1:{}", CLIENT_PORT).as_str()).run());
-            // SUPERVISOR_CHANNEL =
-            //     Some(Supervisor::connect().map_err(|e| ErrorInternalServerError(e.to_string()))?);
         }
     }
     let settings_data = SettingsFormData::load_from_file()?;
@@ -56,17 +53,13 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
     std::thread::spawn(move || {
         for _ in 0..run_game_data.iterations {
             let mut channel = Supervisor::connect().unwrap();
-            // unsafe {
-            //     SUPERVISOR_CHANNEL = Supervisor::connect()
-            //         .map_err(|e| ErrorInternalServerError(e.to_string()))
-            //         .ok();
-            // }
             for mut map in &run_game_data.map {
                 if map == "Random" {
                     map = maps.iter().choose(&mut rand::thread_rng()).unwrap();
                 }
                 for bot1 in &run_game_data.bot1 {
                     for bot2 in &run_game_data.bot2 {
+                        let mut results_data: Option<ResultsData> = None;
                         let mut config = rust_ac::config::Config::new();
                         let max_match_id = FileResultsData::load_from_file()
                             .unwrap_or_default()
@@ -97,22 +90,48 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                             settings_data.bot_directory_location.clone(),
                             "".to_string(),
                         );
-                        let _rec = channel.recv();
-                        let _c2 = start_bot(
-                            bot2.clone(),
-                            settings_data.bot_directory_location.clone(),
-                            "".to_string(),
-                        );
-                        let mut results_data: Option<ResultsData> = None;
-                        for msg in channel.iter() {
-                            println!("{:?}", msg.clone());
-                            if msg.contains("MatchID") {
-                                println!("\n\n\n\nOk");
-                                results_data = serde_json::from_str(&msg).ok();
-                                break;
+                        let mut bots: [bool; 2] = [false; 2];
+                        match channel.recv_timeout(10) {
+                            Ok(result) => {
+                                let v: Value = serde_json::from_str(&result).unwrap();
+                                if v["Bot"] == "Connected" {
+                                    bots[0] = true;
+                                }
+                            }
+                            Err(_) => {
+                                results_data = Some(ResultsData::init_error(&config));
+                            }
+                        }
+                        if bots[0] {
+                            let _c2 = start_bot(
+                                bot2.clone(),
+                                settings_data.bot_directory_location.clone(),
+                                "".to_string(),
+                            );
+                            match channel.recv_timeout(10) {
+                                Ok(result) => {
+                                    let v: Value = serde_json::from_str(&result).unwrap();
+                                    if v["Bot"] == "Connected" {
+                                        bots[1] = true;
+                                    }
+                                }
+                                Err(_) => {
+                                    results_data = Some(ResultsData::init_error(&config));
+                                }
+                            }
+                        }
+                        if results_data.is_none() {
+                            for msg in channel.iter() {
+                                println!("{:?}", msg.clone());
+                                if msg.contains("MatchID") {
+                                    println!("\n\n\n\nOk");
+                                    results_data = serde_json::from_str(&msg).ok();
+                                    break;
+                                }
                             }
                         }
                         if let Some(data) = results_data {
+                            debug!("Found results data");
                             let game_result: GameResult = data.into();
                             match FileResultsData::load_from_file() {
                                 Ok(mut x) => {
@@ -125,13 +144,14 @@ pub async fn run_games(run_game_data: Bytes) -> Result<HttpResponse> {
                                     let mut frd = FileResultsData::default();
                                     frd.add_result(game_result);
 
-                                    if let Err(e) = save_to_file(&frd, RESULTS_FILE) {
+                                    if let Err(e) = frd.save_to_file() {
                                         error!("{}", e.to_string());
                                     }
                                 }
                             };
                         }
                         channel.send("Disconnect".to_string());
+                        debug!("Finished");
                     }
                 }
             }
@@ -222,16 +242,17 @@ pub async fn get_settings() -> Result<Json<SettingsFormData>> {
 
 #[api_v2_operation]
 pub async fn get_results() -> Result<Json<FileResultsData>> {
-    if let Ok(settings_data) = FileResultsData::load_from_file() {
-        Ok(Json(settings_data))
+    if let Ok(results_data) = FileResultsData::load_from_file() {
+        Ok(Json(results_data))
     } else {
-        let settings_data = FileResultsData::default();
-        Ok(Json(settings_data))
+        let results_data = FileResultsData::default();
+        Ok(Json(results_data))
     }
 }
 #[api_v2_operation]
 pub async fn clear_results() -> Result<HttpResponse> {
-    let results_file = File::open(RESULTS_FILE)?;
+    let results_file_path = ResultsData::results_file()?;
+    let results_file = OpenOptions::new().write(true).open(results_file_path)?;
     results_file.set_len(0)?;
     Ok(HttpResponse::Ok().finish())
 }
