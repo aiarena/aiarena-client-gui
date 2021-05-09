@@ -10,7 +10,7 @@ import Nav from 'react-bootstrap/Nav';
 
 import Settings from "./Settings";
 import Home from "./Home";
-import {invoke} from "@tauri-apps/api/tauri";
+// import {invoke} from "@tauri-apps/api/tauri";
 
 // document.addEventListener('DOMContentLoaded', () => {
 //     // This will wait for the window to load, but you could
