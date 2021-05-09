@@ -23,7 +23,11 @@ pub fn open_file_dialog() -> String {
 }
 #[tauri::command]
 pub fn tauri_test() -> bool {
-  true
+  if cfg!(target_os = "linux") {
+    false
+  } else {
+    true
+  }
 }
 
 #[tauri::command]

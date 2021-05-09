@@ -36,9 +36,10 @@ Backend [readme](backend/README.md)
 - [ ] Frontend
 - [ ] Dynamic logging to files for debugging purposes
 - [ ] Rust tests
-- [ ] Quasar tests
+- [ ] Frontend tests
 - [x] CI/CD
 - [ ] Docker File with all bot dependencies
+- [x] Headless mode
 
 #### Required for v1
 - [x] Download bots from AiArena and run games
