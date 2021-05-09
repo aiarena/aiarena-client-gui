@@ -1,20 +1,18 @@
-mod api_structs;
-pub mod bots;
+mod bot;
+mod errors;
+pub mod files;
+mod helpers;
+mod json_structs;
+mod macros;
 mod paths;
-mod results_data;
-pub mod routes;
-mod run_game_data;
 pub mod server;
-mod settings_data;
 mod supervisor;
-#[macro_use]
-extern crate serde_json;
-
-#[macro_use]
-extern crate log;
 
 #[macro_use]
 extern crate serde;
+
+#[macro_use]
+extern crate anyhow;
 
 pub use actix_web::{App, HttpResponse, HttpServer, Result};
 use aiarena_client_gui_backend_lib::server::get_server;
@@ -24,5 +22,5 @@ async fn main() -> std::io::Result<()> {
     ::std::env::set_var("RUST_LOG", "trace");
     env_logger::init();
 
-    get_server("./static/")?.await
+    get_server()?.await
 }

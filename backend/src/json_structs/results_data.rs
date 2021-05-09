@@ -1,16 +1,6 @@
-use actix_web::error::ErrorInternalServerError;
-use actix_web::Result;
-use directories::ProjectDirs;
-use paperclip::actix::Apiv2Schema;
 use rust_ac::config::Config;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::error::Error;
-use std::fs::{File, OpenOptions};
-use std::io::{Read, Write};
-use std::path::{Path, PathBuf};
-
-pub static RESULTS_FILE: &str = "results.json";
 
 #[derive(Deserialize, Serialize, Debug, Default, Clone)]
 pub struct ResultsData {
@@ -34,14 +24,6 @@ pub struct ResultsData {
     match_id: i64,
 }
 impl ResultsData {
-    pub fn results_file() -> Result<PathBuf> {
-        let project_dirs = ProjectDirs::from("org", "AIArena", "GUI")
-            .ok_or_else(|| ErrorInternalServerError("Could not create Project Directory"))?;
-        if !project_dirs.data_local_dir().exists() {
-            std::fs::create_dir_all(project_dirs.data_local_dir())?;
-        }
-        Ok(project_dirs.data_local_dir().join(&RESULTS_FILE))
-    }
     pub fn new(
         results: HashMap<String, String>,
         game_time: u64,
@@ -171,9 +153,9 @@ impl From<ResultsData> for GameResult {
 pub struct ErrorResultsData {
     result: String,
 }
-#[derive(Debug, Default, Clone, Serialize, Deserialize, Apiv2Schema)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize)]
 pub struct GameResult {
-    match_id: i64,
+    pub(crate) match_id: i64,
     bot1: String,
     bot2: String,
     winner: String,
@@ -186,73 +168,10 @@ pub struct GameResult {
     bot2_avg_frame: f64,
     replay_path: String,
 }
-#[allow(dead_code)]
-pub fn save_to_file<T: Serialize>(data: &T, file_name: &str) -> Result<(), Box<dyn Error>> {
-    let mut f: File;
-    if !Path::new(file_name).exists() {
-        f = File::create(file_name)?;
-    } else {
-        f = OpenOptions::new().write(true).open(file_name)?;
-    }
-    // Clear file
-    f.set_len(0)?;
-    f.write_all((serde_json::to_string_pretty(&data)?).as_bytes())?;
-    Ok(())
-}
-
-#[derive(Serialize, Deserialize, Debug, Apiv2Schema, Default)]
-pub struct FileResultsData {
-    #[serde(default, rename = "Results")]
-    results: Vec<GameResult>,
-}
-
-impl FileResultsData {
-    #[allow(dead_code)]
-    pub fn load_from_file() -> Result<Self, Box<dyn Error>> {
-        let mut f: File;
-        let results_file = ResultsData::results_file()?;
-        if !results_file.exists() {
-            f = File::create(&results_file)?;
-        } else {
-            f = File::open(&results_file)?;
-        }
-        let mut contents = String::new();
-        f.read_to_string(&mut contents)?;
-
-        // Deserialize and print Rust data structure.
-        let data: FileResultsData = serde_json::from_str(&contents)?;
-
-        Ok(data)
-    }
-    #[allow(dead_code)]
-    pub fn save_to_file(&self) -> Result<(), Box<dyn Error>> {
-        let mut f: File;
-        let results_file = ResultsData::results_file()?;
-        if !results_file.exists() {
-            f = File::create(results_file)?;
-        } else {
-            f = OpenOptions::new().write(true).open(results_file)?;
-        }
-        // Clear file
-        f.set_len(0)?;
-        f.write_all((serde_json::to_string_pretty(&self)?).as_bytes())?;
-        Ok(())
-    }
-    pub fn add_result(&mut self, result: GameResult) {
-        self.results.push(result)
-    }
-    pub fn max_match_id(&self) -> i64 {
-        self.results
-            .iter()
-            .map(|x| x.match_id)
-            .max()
-            .unwrap_or(0i64)
-    }
-}
 
 #[cfg(test)]
 mod tests {
-    use crate::results_data::{GameResult, ResultsData};
+    use crate::json_structs::results_data::{GameResult, ResultsData};
     use std::collections::HashMap;
 
     fn results_data_setup() -> ResultsData {
