@@ -36,8 +36,8 @@ Backend [readme](backend/README.md)
 - [x] Frontend
 - [ ] Dynamic logging to files for debugging purposes
 - [ ] Rust tests
-- [ ] Quasar tests
-- [ ] CI/CD
+- [ ] Frontend tests
+- [x] CI/CD
 - [ ] Docker File with all bot dependencies
 - [x] Headless mode
 
