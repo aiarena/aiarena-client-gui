@@ -119,7 +119,7 @@ class Settings extends Component {
             <div className="middle-pad">
                 <div>
                     <div style={{TextAlign: 'right'}}>
-                        <a href="" onClick={this.openDirectory(this.state.local_file_directory)}>{'App Data Directory: ' + this.state.local_file_directory}</a>
+                        <a href="/non-existing" onClick={this.openDirectory(this.state.local_file_directory)}>{'App Data Directory: ' + this.state.local_file_directory}</a>
                     </div>
                     <main>
                         <h1>Settings</h1><br/><br/>
