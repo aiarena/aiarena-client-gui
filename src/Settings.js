@@ -108,13 +108,18 @@ class Settings extends Component {
             }
         });
     }
+    openDirectory = name => event => {
+        event.preventDefault();
+        invoke("open_directory", {path: name});
+
+    }
 
     render() {
         return (
             <div className="middle-pad">
                 <div>
                     <div style={{TextAlign: 'right'}}>
-                        <label>{'App Data Directory ' + this.state.local_file_directory}</label>
+                        <a href="" onClick={this.openDirectory(this.state.local_file_directory)}>{'App Data Directory: ' + this.state.local_file_directory}</a>
                     </div>
                     <main>
                         <h1>Settings</h1><br/><br/>

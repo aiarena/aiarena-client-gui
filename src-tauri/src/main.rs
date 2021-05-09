@@ -43,7 +43,8 @@ async fn main() {
     .invoke_handler(tauri::generate_handler![
       cmd::open_file_dialog,
       cmd::tauri_test,
-      cmd::get_project_directory
+      cmd::get_project_directory,
+      cmd::open_directory
     ])
     .setup(|app| {
       let splashscreen = app.get_window(&"splashscreen".into()).unwrap();

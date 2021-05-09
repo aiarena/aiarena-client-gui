@@ -53,7 +53,7 @@
         "all": false
       },
       "shell": {
-        "all": false
+        "all": true
       },
       "dialog": {
         "open": true,

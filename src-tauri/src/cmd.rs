@@ -1,7 +1,7 @@
 use aiarena_client_gui_backend_lib::project_directory;
 use serde::Deserialize;
 use tauri::api::dialog::FileDialogBuilder;
-
+use tauri::api::shell::open;
 #[derive(Debug, Deserialize)]
 pub struct RequestBody {
   id: i32,
@@ -36,4 +36,8 @@ pub fn get_project_directory() -> String {
     Ok(path) => path,
     Err(e) => e.to_string(),
   }
+}
+#[tauri::command]
+pub fn open_directory(path: String) {
+  open(path, None).unwrap();
 }
