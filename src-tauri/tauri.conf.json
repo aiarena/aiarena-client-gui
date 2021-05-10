@@ -63,7 +63,7 @@
         "request": false
       },
       "notification": {
-        "all": false
+        "all": true
       },
       "globalShortcut": {
         "all": false
