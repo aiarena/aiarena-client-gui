@@ -32,7 +32,7 @@ pub fn start_bot(
         &port,
         "--LadderServer",
         "127.0.0.1",
-        "--OpponentID",
+        "--OpponentId",
         opp_id.as_str(),
     ];
     let lower_type = bot.bot_type.to_ascii_lowercase();
