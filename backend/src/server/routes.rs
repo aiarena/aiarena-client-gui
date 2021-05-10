@@ -26,6 +26,7 @@ use std::fs::OpenOptions;
 
 use crate::errors::MyError;
 use std::thread::JoinHandle;
+use std::time::Duration;
 
 pub const AIARENA_URL: &str = "https://aiarena.net";
 static mut RUST_SERVER_HANDLE: Option<JoinHandle<()>> = None;
@@ -230,6 +231,7 @@ pub async fn get_arena_bots() -> Result<Json<AiarenaApiBots>> {
                 "Authorization",
                 format!("Token  {}", settings_data.api_token),
             )
+            .timeout(Duration::from_secs(60))
             .send() // <- Send https request
             .await?;
 
