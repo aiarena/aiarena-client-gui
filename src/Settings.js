@@ -4,6 +4,8 @@ import {invoke} from "@tauri-apps/api/tauri";
 
 import qs from 'qs'
 import axios from 'axios'
+import {LoadingIndicator} from "./Home";
+import {trackPromise} from "react-promise-tracker";
 
 class Settings extends Component {
     constructor(props) {
@@ -28,6 +30,7 @@ class Settings extends Component {
     }
 
     openFolderDialog(event) {
+        trackPromise(
         invoke('open_file_dialog').then((path) => {
             if (path !== "") {
                 let obj = {event: ""};
@@ -35,7 +38,7 @@ class Settings extends Component {
                 this.setState(obj);
             }
 
-        }).catch(reason => console.log(reason));
+        }).catch(reason => console.log(reason)));
     }
 
 
@@ -64,27 +67,27 @@ class Settings extends Component {
     }
 
     componentDidMount() {
-        axios.get("http://127.0.0.1:8082/get_settings",)
+        trackPromise(axios.get("http://127.0.0.1:8082/get_settings",)
             .then((data) => {
                 data.data['game_time'] = this.getGameTimeFromMaxGameTime(data.data.max_game_time);
 
                 this.setState(data.data);
-            }).catch(console.log);
-        invoke('tauri_test').then(enabled => {
+            }).catch(console.log));
+        trackPromise(invoke('tauri_test').then(enabled => {
             let obj = {'tauri_enabled': enabled};
             this.setState(obj);
         }).catch(() => {
             let obj = {'tauri_enabled': false};
             this.setState(obj);
-        })
-        invoke('get_project_directory').then(path => {
+        }));
+        trackPromise(invoke('get_project_directory').then(path => {
             let obj = {'local_file_directory': `${path}`};
             this.setState(obj);
         }).catch((e) => {
             console.log(e);
             let obj = {'local_file_directory': ""};
             this.setState(obj);
-        })
+        }))
 
 
     }
@@ -99,6 +102,7 @@ class Settings extends Component {
             max_game_time: this.state.max_game_time,
             allow_debug: this.state.allow_debug,
         });
+        trackPromise(
         axios({
             method: 'post',
             url: 'http://127.0.0.1:8082/handle_data',
@@ -106,15 +110,22 @@ class Settings extends Component {
             headers: {
                 'content-type': 'application/x-www-form-urlencoded;charset=utf-8'
             }
-        });
+        }));
+    }
+    openDirectory = name => event => {
+        event.preventDefault();
+        trackPromise(
+        invoke("open_directory", {path: name}));
+
     }
 
     render() {
         return (
             <div className="middle-pad">
+                <LoadingIndicator/>
                 <div>
                     <div style={{TextAlign: 'right'}}>
-                        <label>{'App Data Directory ' + this.state.local_file_directory}</label>
+                        <a href="/non-existing" onClick={this.openDirectory(this.state.local_file_directory)}>{'App Data Directory: ' + this.state.local_file_directory}</a>
                     </div>
                     <main>
                         <h1>Settings</h1><br/><br/>
