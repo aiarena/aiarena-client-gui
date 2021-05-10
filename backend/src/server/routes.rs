@@ -12,7 +12,7 @@ use crate::{
 };
 
 use actix_web::{
-    client::Client,
+    client::{Client, Connector},
     error::{ErrorBadGateway, ErrorInternalServerError},
     web::{Bytes, Form, Json},
     HttpResponse, Result,
@@ -25,6 +25,7 @@ use serde_json::Value;
 use std::fs::OpenOptions;
 
 use crate::errors::MyError;
+
 use std::thread::JoinHandle;
 use std::time::Duration;
 
@@ -219,7 +220,11 @@ pub async fn handle_data(form: Form<SettingsFormData>) -> Result<HttpResponse> {
 
 pub async fn get_arena_bots() -> Result<Json<AiarenaApiBots>> {
     if let Ok(settings_data) = SettingsFormData::load_from_file() {
-        let client = Client::default();
+        let connector = Connector::new().timeout(Duration::from_secs(60)).finish();
+        let client = Client::builder()
+            .connector(connector)
+            .timeout(Duration::from_secs(60))
+            .finish();
         let mut response = client
             .get(format!(
                 "{}{}",
