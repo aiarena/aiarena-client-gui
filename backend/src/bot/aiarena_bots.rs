@@ -92,8 +92,15 @@ pub struct BotDownloadClient {
 }
 impl BotDownloadClient {
     pub fn new() -> Self {
+        let connector = actix_web::client::Connector::new()
+            .timeout(Duration::from_secs(60))
+            .finish();
+        let client = Client::builder()
+            .connector(connector)
+            .timeout(Duration::from_secs(60))
+            .finish();
         Self {
-            client: Client::default(),
+            client,
             md5_hashes_file: RwLock::new(MD5HashesFile::load_from_file().unwrap_or_default()),
         }
     }
