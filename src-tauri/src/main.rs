@@ -66,7 +66,7 @@ async fn main() {
       splashscreen.set_position(center.0, center.1).unwrap();
       let main = app.get_window(&"main".into()).unwrap();
       tauri::async_runtime::spawn(async move {
-        sleep(Duration::from_secs(3));
+        sleep(Duration::from_secs(2));
         splashscreen.close().unwrap();
         main.show().unwrap();
         main.set_always_on_top(true).unwrap();
