@@ -21,7 +21,14 @@ struct Reply {
 
 #[actix_web::main]
 async fn main() {
-  if ::std::env::var_os("RUST_LOG").is_none() {
+  let args: Vec<String> = std::env::args().collect();
+  let mut log_arg = None;
+  if let Some((index, _)) = args.iter().enumerate().find(|&(_, x)| x == "--log") {
+    log_arg = args.get(index + 1);
+  }
+  if let Some(arg) = log_arg {
+    ::std::env::set_var("RUST_LOG", arg);
+  } else if ::std::env::var_os("RUST_LOG").is_none() {
     ::std::env::set_var("RUST_LOG", "info");
   }
   env_logger::init();
@@ -38,13 +45,15 @@ async fn main() {
   });
 
   let server = server_rx.recv().unwrap();
-  let args: Vec<String> = std::env::args().collect();
+
   tauri::Builder::default()
     .invoke_handler(tauri::generate_handler![
       cmd::open_file_dialog,
       cmd::tauri_test,
       cmd::get_project_directory,
-      cmd::open_directory
+      cmd::open_directory,
+      cmd::restart_app_with_logs,
+      cmd::get_debug_logs_directory
     ])
     .setup(|app| {
       let splashscreen = app.get_window(&"splashscreen".into()).unwrap();

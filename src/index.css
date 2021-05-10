@@ -76,6 +76,9 @@ a {
 label{
   color: #86c232;
 }
+p.warning {
+  color: red;
+}
 a.file-link:visited {
   color: red;
 }

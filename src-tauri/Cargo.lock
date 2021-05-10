@@ -350,6 +350,7 @@ name = "ai-arena-client-gui"
 version = "0.2.0"
 dependencies = [
  "aiarena-client-gui-backend",
+ "chrono",
  "env_logger",
  "serde",
  "serde_json",
