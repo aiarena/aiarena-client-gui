@@ -57,6 +57,13 @@ async fn main() {
     ])
     .setup(|app| {
       let splashscreen = app.get_window(&"splashscreen".into()).unwrap();
+      let default_screen_size = (1920.0, 1080.0);
+      let splash_screen_size = (400.0, 200.0);
+      let center = (
+        (default_screen_size.0 / 2.0) - (splash_screen_size.0 / 2.0),
+        (default_screen_size.1 / 2.0) - (splash_screen_size.1 / 2.0),
+      );
+      splashscreen.set_position(center.0, center.1).unwrap();
       let main = app.get_window(&"main".into()).unwrap();
       tauri::async_runtime::spawn(async move {
         sleep(Duration::from_secs(3));
