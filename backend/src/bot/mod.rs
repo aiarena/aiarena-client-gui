@@ -50,8 +50,9 @@ pub fn start_bot(
         "nodejs" => "node",
         name => name,
     };
-
-    let stderr_log = File::create(bot_path.join("data").join("stderr.log")).unwrap();
+    let data_dir = bot_path.join("data");
+    std::fs::create_dir_all(data_dir.clone()).unwrap();
+    let stderr_log = File::create(data_dir.join("stderr.log")).unwrap();
     let stdout_log = stderr_log.try_clone()?;
     let mut command = Command::new(start_command);
     let c = command

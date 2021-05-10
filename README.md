@@ -34,7 +34,7 @@ Backend [readme](backend/README.md)
   - [x] MacOS
   - [x] Linux (Except for FileDialog)
 - [x] Frontend
-- [ ] Dynamic logging to files for debugging purposes
+- [x] Dynamic logging to file for debugging purposes
 - [ ] Rust tests
 - [ ] Frontend tests
 - [x] CI/CD

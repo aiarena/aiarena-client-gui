@@ -10,6 +10,7 @@ import Nav from 'react-bootstrap/Nav';
 
 import Settings from "./Settings";
 import Home from "./Home";
+import Debug from "./Debug";
 // import {invoke} from "@tauri-apps/api/tauri";
 
 // document.addEventListener('DOMContentLoaded', () => {
@@ -28,6 +29,7 @@ class App extends Component{
                 <Nav className="mr-auto">
                     <Nav.Link as={Link} exact to="/">Home</Nav.Link>
                     <Nav.Link as={Link} to="/settings">Settings</Nav.Link>
+                    <Nav.Link as={Link} to="/debug">Debug</Nav.Link>
                     {/*<Nav.Link as={Link} to="/contact">Pricing</Nav.Link>*/}
                 </Nav>
             </Navbar>
@@ -40,7 +42,7 @@ class App extends Component{
           <div className="content">
               <Route exact path="/" component={Home}/>
               <Route path="/settings" component={Settings}/>
-              <Route path="/contact" component={Settings}/>
+              <Route path="/debug" component={Debug}/>
           </div>
         </div>
         </HashRouter>

@@ -1,14 +1,31 @@
 import React, {Component} from "react";
 import Select from 'react-select'
 import Button from 'react-bootstrap/Button'
+import { trackPromise } from 'react-promise-tracker';
 // eslint-disable-next-line no-unused-vars
 import * as bs from 'bootstrap/dist/css/bootstrap.css';
 
 import axios from "axios";
 import ResultsTable from "./ResultsTable";
+import {usePromiseTracker} from "react-promise-tracker";
+
+
 function changeToDictionary(v) {
     return {value: v, label: v}
 }
+
+const LoadingIndicator = props => {
+    const { promiseInProgress } = usePromiseTracker();
+    return (
+         promiseInProgress &&
+        <div className="overlay">
+            <div className="overlay__wrapper">
+                <img className="overlay__spinner" src="ai-arena_logo_spinning.gif" alt=""/>
+            </div>
+        </div>
+            );
+};
+
 
 const customStyles = {
 
@@ -22,9 +39,9 @@ const customStyles = {
     singleValue: (provided, state) => {
         const opacity = state.isDisabled ? 0.5 : 1;
         const transition = 'opacity 300ms';
-
         return {...provided, opacity, transition};
     }
+
 }
 
 class Home extends Component {
@@ -60,8 +77,8 @@ class Home extends Component {
         }
         this.setState(obj);
     }
-
     componentDidMount() {
+        trackPromise(
         axios.get("http://127.0.0.1:8082/get_bots",)
             .then((data) => {
 
@@ -71,22 +88,24 @@ class Home extends Component {
                 });
                 this.setState(obj);
 
-            }).catch(console.log);
+            }).catch(console.log));
+        trackPromise(
         axios.get("http://127.0.0.1:8082/get_maps").then((data) => {
             let obj = {maps: []};
             data.data.Maps.forEach(value => {
                 obj.maps.push(changeToDictionary(value));
             });
             this.setState(obj);
-        });
+        }));
         this.getNewResultsData();
 
     }
     clearResults() {
-        axios.post("http://127.0.0.1:8082/clear_results").catch(reason => console.log(reason));
+        trackPromise(axios.post("http://127.0.0.1:8082/clear_results").catch(reason => console.log(reason)));
     }
     loadAIArenaBots(){
         if (!this.state.ai_arena_bots_loaded) {
+            trackPromise(
             axios.get("http://127.0.0.1:8082/get_arena_bots").then((data) =>{
 
                 let obj = {'bots': this.state.bots};
@@ -100,7 +119,7 @@ class Home extends Component {
 
                 let obj2 = {'ai_arena_bots_loaded': true};
                 this.setState(obj2);
-            }).catch(reason => {console.log(reason);});
+            }).catch(reason => {console.log(reason);}));
         }
     }
     getNewResultsData(){
@@ -127,6 +146,7 @@ class Home extends Component {
             Realtime: this.state.Realtime,
         };
         console.log(data);
+        trackPromise(
         axios({
             method: 'post',
             url: 'http://127.0.0.1:8082/run_games',
@@ -134,13 +154,12 @@ class Home extends Component {
             headers: {
                 'content-type': 'json'
             }
-        });
+        }));
     }
     render() {
-
         return (
             <div className="middle-pad">
-
+                <LoadingIndicator/>
                 <main>
                     <h1>Home</h1>
                     <br/>
@@ -150,13 +169,13 @@ class Home extends Component {
                     </label><br/>
                     <form style={{textAlign: 'left', width: '50%'}} id="my_form_id" onSubmit={this.onSubmitHandler}>
                         <h3 style={{textAlign: 'left'}}>Bot 1: </h3>
-                        <Select name="Bot1" label="Bot 1" options={this.state.bots} isMulti styles={customStyles} onChange={this.addInputToState('Bot1')}/>
+                        <Select name="Bot1" label="Bot 1" closeMenuOnSelect={false}  options={this.state.bots} isMulti styles={customStyles} onChange={this.addInputToState('Bot1')}/>
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Bot 2: </h3>
-                        <Select name="Bot2" label="Bot 2" options={this.state.bots} isMulti styles={customStyles} onChange={this.addInputToState('Bot2')} />
+                        <Select name="Bot2" label="Bot 2" closeMenuOnSelect={false}  options={this.state.bots} isMulti styles={customStyles} onChange={this.addInputToState('Bot2')} />
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Map:</h3>
-                        <Select id="Map" label="Map" options={this.state.maps} isMulti styles={customStyles} onChange={this.addInputToState('Map')}/>
+                        <Select id="Map" label="Map" closeMenuOnSelect={false}  options={this.state.maps} isMulti styles={customStyles} onChange={this.addInputToState('Map')}/>
                         <br/>
                         <h3 style={{textAlign: 'left'}}>Iterations: </h3>
                         <div style={{textAlign: 'left'}}>
@@ -201,3 +220,4 @@ class Home extends Component {
 
 
 export default Home;
+export {LoadingIndicator};
