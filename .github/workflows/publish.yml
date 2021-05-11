@@ -27,20 +27,38 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y webkit2gtk-4.0
-    - uses: Swatinem/rust-cache@v1
-      with:
-          working-directory: src-tauri
-    - name: Cache node modules
+
+    - name: Cache cargo registry
       uses: actions/cache@v2
-      env:
-          cache-name: cache-node-modules
       with:
-          path: "**/node_modules"
+        path: ~/.cargo/registry
+        key: ${{ runner.os }}-${{ steps.rustup.outputs.rustc_hash }}-dev-registry-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache cargo index
+        uses: actions/cache@v2
+        with:
+          path: ~/.cargo/git
+          key: ${{ runner.os }}-${{ steps.rustup.outputs.rustc_hash }}-dev-index-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache build paths
+        uses: actions/cache@v2
+        with:
+          path: |
+            src-tauri/target
+            backend/target
+          key: ${{ runner.os }}-${{ steps.rustup.outputs.rustc_hash }}-dev-target-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: "node_modules"
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+
     - name: install app dependencies and build it
       run: yarn && yarn build
     - uses: tauri-apps/tauri-action@v0
