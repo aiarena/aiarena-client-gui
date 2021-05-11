@@ -6,7 +6,8 @@ on:
       - release
   push:
     branches:
-      - '!master'
+      - '!release'
+      - "*"
 
 
 jobs:
