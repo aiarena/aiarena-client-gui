@@ -49,6 +49,9 @@ jobs:
     - name: install app dependencies and build it
       run: yarn && yarn build
     - name: run rust tests
+      env:
+        RUST_BACKTRACE: 1
+        AIARENATOKEN: ${{ secrets.AIARENATOKEN }}
       run: cd backend && cargo test
     - uses: tauri-apps/tauri-action@v0
       env:

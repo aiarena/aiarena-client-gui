@@ -1,46 +1,50 @@
 //! Simple websocket client.
 use crate::server::routes::CLIENT_PORT;
 // use actix::*;
-use crossbeam::channel::Iter;
 use log::{debug, error};
 use rust_ac::websocket::{
     header::{Header, HeaderFormat, Headers},
     {ClientBuilder, Message, OwnedMessage},
 };
-use std::{error::Error, fmt::Formatter, thread, thread::JoinHandle, time::Duration};
+use std::sync::mpsc::channel;
+use std::{
+    error::Error,
+    fmt::Formatter,
+    sync::mpsc::{Iter, Receiver, RecvError, RecvTimeoutError, SendError, Sender, TryRecvError},
+    thread,
+    thread::JoinHandle,
+    time::Duration,
+};
 
 pub struct Supervisor {}
 pub struct SupervisorChannel {
-    supervisor_sender: crossbeam::channel::Sender<String>,
-    server_receiver: crossbeam::channel::Receiver<String>,
+    supervisor_sender: Sender<String>,
+    server_receiver: Receiver<String>,
     _join_handle: JoinHandle<()>,
 }
 impl SupervisorChannel {
-    pub fn send(&mut self, txt: String) -> Result<(), crossbeam::channel::SendError<String>> {
+    pub fn send(&mut self, txt: String) -> Result<(), SendError<String>> {
         self.supervisor_sender.send(txt)
     }
-    pub fn recv(&mut self) -> Result<String, crossbeam::channel::RecvError> {
+    pub fn recv(&mut self) -> Result<String, RecvError> {
         self.server_receiver.recv()
     }
     #[allow(dead_code)]
-    pub fn try_recv(&mut self) -> Result<String, crossbeam::channel::TryRecvError> {
+    pub fn try_recv(&mut self) -> Result<String, TryRecvError> {
         self.server_receiver.try_recv()
     }
     pub fn iter(&mut self) -> Iter<'_, String> {
         self.server_receiver.iter()
     }
-    pub fn recv_timeout(
-        &mut self,
-        secs: u64,
-    ) -> Result<String, crossbeam::channel::RecvTimeoutError> {
+    pub fn recv_timeout(&mut self, secs: u64) -> Result<String, RecvTimeoutError> {
         self.server_receiver.recv_timeout(Duration::from_secs(secs))
     }
 }
 
 impl Supervisor {
     pub fn connect() -> Result<SupervisorChannel, Box<dyn Error>> {
-        let (supervisor_sender, supervisor_receiver) = crossbeam::channel::unbounded::<String>();
-        let (server_sender, server_receiver) = crossbeam::channel::unbounded::<String>();
+        let (supervisor_sender, supervisor_receiver) = channel::<String>();
+        let (server_sender, server_receiver) = channel::<String>();
         let mut headers = Headers::new();
         headers.set(SupervisorHeader {
             string: "false".to_string(),
