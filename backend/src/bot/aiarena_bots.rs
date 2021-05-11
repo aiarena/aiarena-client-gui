@@ -13,6 +13,7 @@ use actix_web::{client::Client, web::Buf};
 use anyhow::{Context, Result};
 use async_rwlock::RwLock;
 use log::{debug, error};
+use std::sync::mpsc::Receiver;
 use std::{
     fs::OpenOptions,
     io::{ErrorKind, Write},
@@ -27,7 +28,7 @@ pub enum BotNumber {
     Two,
 }
 #[allow(dead_code)]
-pub type OptionalReceiver = Option<crossbeam::channel::Receiver<BotDownloadStatus>>;
+pub type OptionalReceiver = Option<Receiver<BotDownloadStatus>>;
 #[allow(dead_code)]
 pub struct ToDownload {
     bot_statuses: (BotDownloadStatus, BotDownloadStatus),

@@ -331,7 +331,6 @@ dependencies = [
  "actix-web",
  "anyhow",
  "async-rwlock",
- "crossbeam 0.8.0",
  "directories",
  "env_logger",
  "fs2",
