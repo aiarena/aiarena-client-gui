@@ -6,7 +6,6 @@ on:
       - dev
       - master
 
-
 jobs:
   test-tauri:
     strategy:
