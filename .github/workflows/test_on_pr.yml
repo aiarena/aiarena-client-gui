@@ -52,6 +52,7 @@ jobs:
       env:
         RUST_BACKTRACE: 1
         AIARENATOKEN: ${{ secrets.AIARENATOKEN }}
+      if: github.ref == 'refs/heads/master'
       run: cd backend && cargo test
     - uses: tauri-apps/tauri-action@v0
       env:
