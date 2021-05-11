@@ -4,9 +4,11 @@ on:
     branches:
       - master
       - release
+      - dev
   push:
     branches:
       - '!release'
+      - '*'
 
 
 jobs:
