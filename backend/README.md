@@ -46,7 +46,7 @@ Returns all publicly downloaded bots on `aiarena.net`. Requires API Token to be 
 ### /run_games (post)
 API (documented by Swagger)
 
-Runs games with selected bots and maps.
+Run games with selected bots and maps.
 
 ### /handle_data (post)
 API (documented by Swagger)
