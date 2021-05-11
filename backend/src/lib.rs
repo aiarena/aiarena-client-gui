@@ -8,7 +8,6 @@ mod paths;
 pub mod server;
 mod supervisor;
 
-pub use actix;
 pub use actix_web;
 pub use actix_web::HttpServer;
 pub use helpers::project_directory;

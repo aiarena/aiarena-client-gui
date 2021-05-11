@@ -412,15 +412,3 @@ pub async fn download_bot(bot_name: String) {
         md5_hashes_files.save_to_file().unwrap();
     }
 }
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[actix_rt::test]
-    async fn test_download_bot() {
-        env_logger::init();
-        let e = download_bot("dantheman_3".to_string()).await;
-        println!("{:?}", e);
-        assert_eq!(1, 1);
-    }
-}
