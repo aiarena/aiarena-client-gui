@@ -73,11 +73,11 @@
       "csp": "default-src blob: data: filesystem: ws: http: https: 'unsafe-eval' 'unsafe-inline'"
     },
     "updater": {
-      "active": false,
+      "active": true,
       "dialog": true,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDY4OUExNTIxRTdGMTg5NDkKUldSSmlmSG5JUldhYVA2bVlkWHMxUVhsQW5ZZHBhdHFoMFBNaHBxcGw0eHlmSnIrcWE4SUVkS0EK",
       "endpoints": [
-        ""
+        "https://gist.githubusercontent.com/danielvschoor/3a1eed84184ea1b98d40136811638ef9/raw"
       ]
     },
     "windows": [
