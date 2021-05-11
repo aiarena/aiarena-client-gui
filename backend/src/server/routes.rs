@@ -244,8 +244,13 @@ pub async fn get_arena_bots_env() -> Result<Json<AiarenaApiBots>> {
         let body = response.body().await?;
         let s = String::from_utf8(body.to_vec())
             .map_err(|e| ErrorInternalServerError(e.to_string()))?;
-        let aiarena_api_bots: AiarenaApiBots = serde_json::from_str(&s)?;
-        return Ok(Json(aiarena_api_bots));
+        match serde_json::from_str::<AiarenaApiBots>(&s) {
+            Ok(aiarena_api_bots) => Ok(Json(aiarena_api_bots)),
+            Err(e) => {
+                println!("FAILED to parse: \n{}", &s);
+                Err(actix_web::Error::from(e))
+            }
+        }
     } else {
         return Err(MyError::new("AIARENATOKEN not set").into());
     }
