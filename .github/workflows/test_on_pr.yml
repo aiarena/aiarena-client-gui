@@ -68,7 +68,7 @@ jobs:
       env:
         RUST_BACKTRACE: 1
         AIARENATOKEN: ${{ secrets.AIARENATOKEN }}
-      run: cd backend && cargo test
+      run: cd backend && cargo test -- --nocapture
     - uses: tauri-apps/tauri-action@v0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
