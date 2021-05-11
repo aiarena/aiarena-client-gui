@@ -283,3 +283,13 @@ pub async fn clear_results() -> Result<HttpResponse> {
     results_file.set_len(0)?;
     Ok(HttpResponse::Ok().finish())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[actix_rt::test]
+    async fn test_get_arenabots() {
+        let e = get_arena_bots().await;
+        assert!(e.is_ok())
+    }
+}
