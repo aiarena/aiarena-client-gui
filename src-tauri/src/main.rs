@@ -57,6 +57,7 @@ async fn main() {
     ])
     .setup(|app| {
       let splashscreen = app.get_window(&"splashscreen".into()).unwrap();
+      let main = app.get_window(&"main".into()).unwrap();
       let default_screen_size = (1920.0, 1080.0);
       let splash_screen_size = (400.0, 200.0);
       let center = (
@@ -64,7 +65,7 @@ async fn main() {
         (default_screen_size.1 / 2.0) - (splash_screen_size.1 / 2.0),
       );
       splashscreen.set_position(center.0, center.1).unwrap();
-      let main = app.get_window(&"main".into()).unwrap();
+
       tauri::async_runtime::spawn(async move {
         sleep(Duration::from_secs(2));
         splashscreen.close().unwrap();
@@ -79,7 +80,7 @@ async fn main() {
       if args.contains(&"--headless".to_string()) {
         info!("Starting headless mode");
         for mut window in &mut c.config.tauri.windows {
-          window.visible = false
+          window.visible = false;
         }
       }
       c
