@@ -290,6 +290,9 @@ mod tests {
     #[actix_rt::test]
     async fn test_get_arenabots() {
         let e = get_arena_bots().await;
+        if e.is_err() {
+            println!("{:?}", e);
+        }
         assert!(e.is_ok())
     }
 }
