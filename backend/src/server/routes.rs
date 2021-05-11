@@ -327,6 +327,8 @@ mod tests {
             let err = e.err().unwrap();
             if err.to_string() != "MyError { err: AIARENATOKEN not set }" {
                 panic!("{:?}", err)
+            } else {
+                println!("AIARENATOKEN is not set")
             }
         }
     }
