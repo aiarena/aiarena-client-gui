@@ -12,7 +12,7 @@ use std::sync::mpsc;
 use std::thread;
 use std::thread::sleep;
 use std::time::Duration;
-use tauri::Manager;
+use tauri::{LogicalPosition, Manager, Position};
 
 #[derive(Serialize)]
 struct Reply {
@@ -55,36 +55,36 @@ async fn main() {
       cmd::restart_app_with_logs,
       cmd::get_debug_logs_directory
     ])
-    .setup(|app| {
-      let splashscreen = app.get_window(&"splashscreen".into()).unwrap();
-      let main = app.get_window(&"main".into()).unwrap();
-      let default_screen_size = (1920.0, 1080.0);
-      let splash_screen_size = (400.0, 200.0);
-      let center = (
-        (default_screen_size.0 / 2.0) - (splash_screen_size.0 / 2.0),
-        (default_screen_size.1 / 2.0) - (splash_screen_size.1 / 2.0),
-      );
-      splashscreen.set_position(center.0, center.1).unwrap();
+    .setup(move |app| {
+      if args.contains(&"--headless".to_string()) {
+        info!("Headless mode is not currently implemented");
+        // for window in app.config().tauri.windows{
+        //   window.visible =false;
+        // }
+      } else {
+        let splashscreen = app.get_window("splashscreen").unwrap();
+        let main = app.get_window("main").unwrap();
+        let default_screen_size = (1920.0, 1080.0);
+        let splash_screen_size = (400.0, 200.0);
+        let center = LogicalPosition {
+          x: (default_screen_size.0 / 2.0) - (splash_screen_size.0 / 2.0) as f64,
+          y: (default_screen_size.1 / 2.0) - (splash_screen_size.1 / 2.0) as f64,
+        };
+        splashscreen
+          .set_position(Position::Logical(center))
+          .unwrap();
 
-      tauri::async_runtime::spawn(async move {
-        sleep(Duration::from_secs(2));
-        splashscreen.close().unwrap();
-        main.show().unwrap();
-        main.set_always_on_top(true).unwrap();
-        main.set_always_on_top(false).unwrap();
-      });
+        tauri::async_runtime::spawn(async move {
+          sleep(Duration::from_secs(2));
+          splashscreen.close().unwrap();
+          main.show().unwrap();
+          main.set_always_on_top(true).unwrap();
+          main.set_always_on_top(false).unwrap();
+        });
+      }
       Ok(())
     })
-    .run({
-      let mut c = tauri::generate_context!();
-      if args.contains(&"--headless".to_string()) {
-        info!("Starting headless mode");
-        for mut window in &mut c.config.tauri.windows {
-          window.visible = false;
-        }
-      }
-      c
-    })
+    .run(tauri::generate_context!())
     .unwrap();
 
   let _ = server.stop(true).await;
