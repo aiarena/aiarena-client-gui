@@ -220,35 +220,39 @@ pub async fn handle_data(form: Form<SettingsFormData>) -> Result<HttpResponse> {
 #[cfg(test)]
 pub async fn get_arena_bots_env() -> Result<Json<AiarenaApiBots>> {
     if let Some(api_token) = std::env::var_os("AIARENATOKEN") {
-        let connector = Connector::new().timeout(Duration::from_secs(60)).finish();
-        let client = Client::builder()
-            .connector(connector)
-            .timeout(Duration::from_secs(60))
-            .finish();
+        if api_token.is_empty() {
+            return Err(MyError::new("AIARENATOKEN not set").into());
+        } else {
+            let connector = Connector::new().timeout(Duration::from_secs(60)).finish();
+            let client = Client::builder()
+                .connector(connector)
+                .timeout(Duration::from_secs(60))
+                .finish();
 
-        let mut response = client
-            .get(format!(
-                "{}{}",
-                AIARENA_URL,
-                r#"/api/bots/?&format=json&bot_zip_publicly_downloadable=true&ordering=name"#
-            )) // <- Create request builder
-            .header("User-Agent", "Actix-web")
-            .header(
-                "Authorization",
-                format!("Token  {}", api_token.to_str().unwrap().to_string()),
-            )
-            .timeout(Duration::from_secs(60))
-            .send() // <- Send https request
-            .await?;
+            let mut response = client
+                .get(format!(
+                    "{}{}",
+                    AIARENA_URL,
+                    r#"/api/bots/?&format=json&bot_zip_publicly_downloadable=true&ordering=name"#
+                )) // <- Create request builder
+                .header("User-Agent", "Actix-web")
+                .header(
+                    "Authorization",
+                    format!("Token  {}", api_token.to_str().unwrap().to_string()),
+                )
+                .timeout(Duration::from_secs(60))
+                .send() // <- Send https request
+                .await?;
 
-        let body = response.body().await?;
-        let s = String::from_utf8(body.to_vec())
-            .map_err(|e| ErrorInternalServerError(e.to_string()))?;
-        match serde_json::from_str::<AiarenaApiBots>(&s) {
-            Ok(aiarena_api_bots) => Ok(Json(aiarena_api_bots)),
-            Err(e) => {
-                println!("FAILED to parse: \n{}", &s);
-                Err(actix_web::Error::from(e))
+            let body = response.body().await?;
+            let s = String::from_utf8(body.to_vec())
+                .map_err(|e| ErrorInternalServerError(e.to_string()))?;
+            match serde_json::from_str::<AiarenaApiBots>(&s) {
+                Ok(aiarena_api_bots) => Ok(Json(aiarena_api_bots)),
+                Err(e) => {
+                    println!("FAILED to parse: \n{}", &s);
+                    Err(actix_web::Error::from(e))
+                }
             }
         }
     } else {
