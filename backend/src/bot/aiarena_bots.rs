@@ -153,11 +153,13 @@ impl BotDownloadClient {
         let r = futures::future::join_all(futures).await;
         Ok(bots.iter().zip(r).collect())
     }
+    #[allow(dead_code)]
     pub async fn get_and_download_bot_zip(&self, bot_name: String) -> Result<()> {
         let bot_name = bot_name.replace(" (AI-Arena)", "");
         let bot = self.get_bot_details(bot_name).await?;
         self.download_zip(&bot).await
     }
+    #[allow(dead_code)]
     pub async fn get_bot_details(&self, bot_name: String) -> Result<AiarenaApiBot> {
         let settings_data = SettingsFormData::load_from_file()?;
         let mut response = self

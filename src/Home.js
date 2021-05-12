@@ -8,11 +8,18 @@ import * as bs from 'bootstrap/dist/css/bootstrap.css';
 import axios from "axios";
 import ResultsTable from "./ResultsTable";
 import {usePromiseTracker} from "react-promise-tracker";
-
+import { invoke } from '@tauri-apps/api/tauri'
 
 function changeToDictionary(v) {
     return {value: v, label: v}
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    // This will wait for the window to load, but you could
+    // run this function on whatever trigger you want
+    invoke('close_splashscreen')
+})
 
 const LoadingIndicator = props => {
     const { promiseInProgress } = usePromiseTracker();
@@ -70,7 +77,7 @@ class Home extends Component {
 
     handleInputChange(event) {
         let obj = {};
-        if (event.target.name === "allow_debug") {
+        if (event.target.type === "checkbox") {
             obj[event.target.name] = event.target.checked;
         } else {
             obj[event.target.name] = event.target.value;
@@ -184,9 +191,9 @@ class Home extends Component {
                         </div>
                         <br/>
                         <div style={{textAlign: 'left'}}>
-                            <label>Visualize: </label><br/>
-                            <input id="visualize_id" type="checkbox" name="Visualize" checked={this.state.Visualize} onChange={this.handleInputChange}/>
-                            <br/>
+                            {/*<label>Visualize: </label><br/>*/}
+                            {/*<input id="visualize_id" type="checkbox" name="Visualize" checked={this.state.Visualize} onChange={this.handleInputChange}/>*/}
+                            {/*<br/>*/}
                             <label>Realtime: </label><br/>
                             <input id="realtime_id" type="checkbox" name="Realtime" checked={this.state.Realtime} onChange={this.handleInputChange}/>
 
