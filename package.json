@@ -3,9 +3,9 @@
   "version": "0.2.3",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "5.11.6",
-    "@testing-library/react": "11.2.2",
-    "@testing-library/user-event": "12.5.0",
+    "@testing-library/jest-dom": "5.12.0",
+    "@testing-library/react": "11.2.6",
+    "@testing-library/user-event": "13.1.8",
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
     "qs": "^6.10.1",
@@ -14,7 +14,7 @@
     "react-dom": "17.0.2",
     "react-promise-tracker": "^2.1.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.1",
+    "react-scripts": "4.0.3",
     "react-select": "^4.3.1"
   },
   "scripts": {
@@ -41,7 +41,7 @@
     ]
   },
   "devDependencies": {
-    "@craco/craco": "6.0.0",
+    "@craco/craco": "6.1.2",
     "@tauri-apps/api": "^1.0.0-beta.0",
     "@tauri-apps/cli": "^1.0.0-beta.0",
     "@tauri-apps/tauri-webpack": "0.2.0",
