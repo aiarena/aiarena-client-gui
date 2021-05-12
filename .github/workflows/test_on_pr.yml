@@ -76,4 +76,4 @@ jobs:
       with:
         name: artifacts
         path: |
-          '${{ github.workspace }}/src-tauri/target/release/bundle/*'
+          ${{ github.workspace }}/src-tauri/target/release/bundle/
