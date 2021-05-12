@@ -1,11 +1,30 @@
 import React, {Component} from "react";
 import Button from "react-bootstrap/Button";
+import Alert from "react-bootstrap/Alert";
 import {invoke} from "@tauri-apps/api/tauri";
-
 import qs from 'qs'
 import axios from 'axios'
 import {LoadingIndicator} from "./Home";
 import {trackPromise} from "react-promise-tracker";
+
+function AlertMessage(props) {
+
+    if (props.show && props.success) {
+        return (
+            <Alert variant="success" onClose={() => props.show=false} dismissible>
+                Settings submitted successfully.
+            </Alert>
+        );
+    }else if (props.show && !props.success){
+        return (
+            <Alert variant="danger" onClose={() => props.show=false} dismissible>
+                Error occurred while submitting settings.
+            </Alert>
+        );
+    }else {
+        return null;
+    }
+}
 
 class Settings extends Component {
     constructor(props) {
@@ -63,7 +82,8 @@ class Settings extends Component {
         allow_debug: false,
         game_time: "",
         tauri_enabled: false,
-        local_file_directory: ""
+        local_file_directory: "",
+        show_message: {show: false, success: false}
     }
 
     componentDidMount() {
@@ -110,6 +130,14 @@ class Settings extends Component {
             headers: {
                 'content-type': 'application/x-www-form-urlencoded;charset=utf-8'
             }
+        }).then((resp) =>{
+            let obj = {show_message: this.state.show_message}
+            if (resp.status === 200){
+               obj.show_message = {success: true, show: true};
+            }else{
+                obj.show_message = {success: false, show: true};
+            }
+            this.setState(obj);
         }));
     }
     openDirectory = name => event => {
@@ -177,6 +205,7 @@ class Settings extends Component {
                             <a href="http://127.0.0.1:8082/ac_log/aiarena-client.log">Download AC Log</a>
                             <br/>
                             <Button variant="outline-light" type="submit">Submit</Button>
+                            <AlertMessage success={this.state.show_message.success} show={this.state.show_message.show}/>
                         </form>
                     </main>
                 </div>
