@@ -17,7 +17,7 @@ class Settings extends Component {
 
     handleInputChange(event) {
         let obj = {};
-        if (event.target.name === "allow_debug") {
+        if (event.target.type === "checkbox"){
             obj[event.target.name] = event.target.checked;
         } else {
             obj[event.target.name] = event.target.value;
