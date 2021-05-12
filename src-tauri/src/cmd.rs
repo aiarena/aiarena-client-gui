@@ -3,8 +3,8 @@ use serde::Deserialize;
 use std::fs::File;
 use std::path::Path;
 use std::process::{exit, Command, Stdio};
-use tauri::api::app::current_binary;
 use tauri::api::dialog::FileDialogBuilder;
+use tauri::api::process::current_binary;
 use tauri::api::shell::open;
 
 #[derive(Debug, Deserialize)]
