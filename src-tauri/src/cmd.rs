@@ -1,11 +1,13 @@
+use crate::{MainWindow, SplashscreenWindow};
 use aiarena_client_gui_backend_lib::project_directory;
 use serde::Deserialize;
 use std::fs::File;
 use std::path::Path;
 use std::process::{exit, Command, Stdio};
-use tauri::api::app::current_binary;
 use tauri::api::dialog::FileDialogBuilder;
+use tauri::api::process::current_binary;
 use tauri::api::shell::open;
+use tauri::State;
 
 #[derive(Debug, Deserialize)]
 pub struct RequestBody {
@@ -86,4 +88,18 @@ pub fn restart_app_with_logs(env_var: String) {
       .expect("application failed to start");
   }
   exit(0)
+}
+
+#[tauri::command]
+pub fn close_splashscreen(
+  splashscreen: State<'_, SplashscreenWindow>,
+  main: State<'_, MainWindow>,
+) {
+  // Close splashscreen
+  splashscreen.0.lock().unwrap().close().unwrap();
+  // Show main window
+  let main_window = main.0.lock().unwrap();
+  main_window.show().unwrap();
+  main_window.set_always_on_top(true).unwrap();
+  main_window.set_always_on_top(false).unwrap();
 }
