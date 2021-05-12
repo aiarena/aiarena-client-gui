@@ -8,11 +8,18 @@ import * as bs from 'bootstrap/dist/css/bootstrap.css';
 import axios from "axios";
 import ResultsTable from "./ResultsTable";
 import {usePromiseTracker} from "react-promise-tracker";
-
+import { invoke } from '@tauri-apps/api/tauri'
 
 function changeToDictionary(v) {
     return {value: v, label: v}
 }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    // This will wait for the window to load, but you could
+    // run this function on whatever trigger you want
+    invoke('close_splashscreen')
+})
 
 const LoadingIndicator = props => {
     const { promiseInProgress } = usePromiseTracker();

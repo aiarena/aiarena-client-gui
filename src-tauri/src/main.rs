@@ -8,16 +8,17 @@ use aiarena_client_gui_backend_lib::actix_web;
 use aiarena_client_gui_backend_lib::log::info;
 use aiarena_client_gui_backend_lib::server::get_server;
 use serde::Serialize;
-use std::sync::mpsc;
+use std::sync::{mpsc, Arc, Mutex};
 use std::thread;
-use std::thread::sleep;
-use std::time::Duration;
-use tauri::{LogicalPosition, Manager, Position};
+use tauri::{LogicalPosition, Manager, Position, Window};
 
 #[derive(Serialize)]
 struct Reply {
   data: String,
 }
+
+pub struct SplashscreenWindow(Arc<Mutex<Window>>);
+pub struct MainWindow(Arc<Mutex<Window>>);
 
 #[actix_web::main]
 async fn main() {
@@ -53,9 +54,16 @@ async fn main() {
       cmd::get_project_directory,
       cmd::open_directory,
       cmd::restart_app_with_logs,
-      cmd::get_debug_logs_directory
+      cmd::get_debug_logs_directory,
+      cmd::close_splashscreen
     ])
     .setup(move |app| {
+      app.manage(SplashscreenWindow(Arc::new(Mutex::new(
+        app.get_window("splashscreen").unwrap(),
+      ))));
+      app.manage(MainWindow(Arc::new(Mutex::new(
+        app.get_window("main").unwrap(),
+      ))));
       if args.contains(&"--headless".to_string()) {
         info!("Headless mode is not currently implemented");
         // for window in app.config().tauri.windows{
@@ -63,7 +71,6 @@ async fn main() {
         // }
       } else {
         let splashscreen = app.get_window("splashscreen").unwrap();
-        let main = app.get_window("main").unwrap();
         let default_screen_size = (1920.0, 1080.0);
         let splash_screen_size = (400.0, 200.0);
         let center = LogicalPosition {
@@ -73,14 +80,6 @@ async fn main() {
         splashscreen
           .set_position(Position::Logical(center))
           .unwrap();
-
-        tauri::async_runtime::spawn(async move {
-          sleep(Duration::from_secs(2));
-          splashscreen.close().unwrap();
-          main.show().unwrap();
-          main.set_always_on_top(true).unwrap();
-          main.set_always_on_top(false).unwrap();
-        });
       }
       Ok(())
     })
