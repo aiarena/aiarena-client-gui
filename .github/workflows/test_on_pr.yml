@@ -76,4 +76,11 @@ jobs:
       with:
         name: artifacts
         path: |
-          ${{ github.workspace }}/src-tauri/target/release/bundle/
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.AppImage.tar.gz
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.AppImage.tar.gz.sig
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.deb
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.app.tar.gz
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.app.tar.gz.sig
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi.zip
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi.zip.sig
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi
