@@ -1,4 +1,5 @@
 use crate::{MainWindow, SplashscreenWindow};
+
 use aiarena_client_gui_backend_lib::project_directory;
 use serde::Deserialize;
 use std::fs::File;
@@ -59,6 +60,11 @@ pub fn get_debug_logs_directory() -> String {
 #[tauri::command]
 pub fn open_directory(path: String) {
   open(path, None).unwrap();
+}
+
+#[tauri::command]
+pub fn settings_okay() -> bool {
+  return aiarena_client_gui_backend_lib::files::settings_data_file::settings_okay();
 }
 
 #[tauri::command]
