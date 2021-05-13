@@ -65,26 +65,31 @@ async fn main() {
       app.manage(MainWindow(Arc::new(Mutex::new(
         app.get_window("main").unwrap(),
       ))));
-      if args.contains(&"--headless".to_string()) {
-        info!("Headless mode is not currently implemented");
-        // for window in app.config().tauri.windows{
-        //   window.visible =false;
-        // }
-      } else {
-        let splashscreen = app.get_window("splashscreen").unwrap();
-        let default_screen_size = (1920.0, 1080.0);
-        let splash_screen_size = (400.0, 200.0);
-        let center = LogicalPosition {
-          x: (default_screen_size.0 / 2.0) - (splash_screen_size.0 / 2.0) as f64,
-          y: (default_screen_size.1 / 2.0) - (splash_screen_size.1 / 2.0) as f64,
-        };
-        splashscreen
-          .set_position(Position::Logical(center))
-          .unwrap();
-      }
+
+      let splashscreen = app.get_window("splashscreen").unwrap();
+      let default_screen_size = (1920.0, 1080.0);
+      let splash_screen_size = (400.0, 200.0);
+      let center = LogicalPosition {
+        x: (default_screen_size.0 / 2.0) - (splash_screen_size.0 / 2.0) as f64,
+        y: (default_screen_size.1 / 2.0) - (splash_screen_size.1 / 2.0) as f64,
+      };
+      splashscreen
+        .set_position(Position::Logical(center))
+        .unwrap();
+
       Ok(())
     })
-    .run(tauri::generate_context!())
+    .run({
+      let mut context = tauri::generate_context!();
+
+      if args.contains(&"--headless".to_string()) {
+        info!("Launching in headless mode");
+        for window in context.config_mut().tauri.windows.iter_mut() {
+          window.visible = false;
+        }
+      }
+      context
+    })
     .unwrap();
 
   let _ = server.stop(true).await;
