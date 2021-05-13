@@ -2,18 +2,34 @@ import React, {Component} from "react";
 import Select from 'react-select'
 import Button from 'react-bootstrap/Button'
 import { trackPromise } from 'react-promise-tracker';
-// eslint-disable-next-line no-unused-vars
-import * as bs from 'bootstrap/dist/css/bootstrap.css';
+import Alert from "react-bootstrap/Alert";
+import 'bootstrap/dist/css/bootstrap.css';
 
 import axios from "axios";
 import ResultsTable from "./ResultsTable";
 import {usePromiseTracker} from "react-promise-tracker";
 import { invoke } from '@tauri-apps/api/tauri'
+import {Link} from "react-router-dom";
+
 
 function changeToDictionary(v) {
     return {value: v, label: v}
 }
 
+
+function SettingsAlertMessage(props) {
+    return (
+        <Alert variant="danger" show={props.show} dismissible>
+            <Alert.Heading >
+                There are some settings that are missing/invalid.
+            </Alert.Heading>
+            <Alert.Link as={Link} to="/settings">
+             Please click here to go to the settings page.
+            </Alert.Link>
+        </Alert>
+    );
+
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     // This will wait for the window to load, but you could
@@ -72,7 +88,8 @@ class Home extends Component {
         Bot2: [],
         Map: [],
         Visualize: false,
-        Realtime: false
+        Realtime: false,
+        settings_okay: true
     }
 
     handleInputChange(event) {
@@ -96,6 +113,14 @@ class Home extends Component {
                 this.setState(obj);
 
             }).catch(console.log));
+
+        trackPromise(invoke('settings_okay').then((is_okay)=>{
+            let obj ={settings_okay: is_okay};
+            this.setState(obj);
+        }).catch(err =>{
+            console.log(err);
+        }));
+
         trackPromise(
         axios.get("http://127.0.0.1:8082/get_maps").then((data) => {
             let obj = {maps: []};
@@ -167,6 +192,7 @@ class Home extends Component {
         return (
             <div className="middle-pad">
                 <LoadingIndicator/>
+                <SettingsAlertMessage show={!this.state.settings_okay}/>
                 <main>
                     <h1>Home</h1>
                     <br/>

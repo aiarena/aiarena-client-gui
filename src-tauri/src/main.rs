@@ -55,7 +55,8 @@ async fn main() {
       cmd::open_directory,
       cmd::restart_app_with_logs,
       cmd::get_debug_logs_directory,
-      cmd::close_splashscreen
+      cmd::close_splashscreen,
+      cmd::settings_okay
     ])
     .setup(move |app| {
       app.manage(SplashscreenWindow(Arc::new(Mutex::new(
