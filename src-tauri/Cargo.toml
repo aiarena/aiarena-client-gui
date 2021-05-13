@@ -1,6 +1,6 @@
 [package]
 name = "ai-arena-client-gui"
-version = "0.2.4"
+version = "0.2.5"
 description = "AI-Arena GUI"
 authors = [ "you" ]
 license = ""
