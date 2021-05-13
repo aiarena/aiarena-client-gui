@@ -2514,9 +2514,9 @@ checksum = "72ef4a56884ca558e5ddb05a1d1e7e1bfd9a68d9ed024c21704cc98872dae1bb"
 
 [[package]]
 name = "notify-rust"
-version = "4.5.0"
+version = "4.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "224fc7e85673ef81a74c42ddb35aef3f4326877ac63a08273b398c9efeac6720"
+checksum = "2e09fce166f9fd7a40a19c4d00d17e3ae4404c73eda8b3e4eaffcbf2dcad69b8"
 dependencies = [
  "mac-notification-sys",
  "serde",
@@ -3506,18 +3506,18 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.125"
+version = "1.0.126"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "558dc50e1a5a5fa7112ca2ce4effcb321b0300c0d4ccf0776a9f60cd89031171"
+checksum = "ec7505abeacaec74ae4778d9d9328fe5a5d04253220a85c4ee022239fc996d03"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.125"
+version = "1.0.126"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b093b7a2bb58203b5da3056c05b4ec1fed827dcfdb37347a8841695263b3d06d"
+checksum = "963a7dbc9895aeac7ac90e74f34a5d5261828f79df35cbed41e10189d3804d43"
 dependencies = [
  "proc-macro2",
  "quote 1.0.9",
@@ -3537,9 +3537,9 @@ dependencies = [
 
 [[package]]
 name = "serde_repr"
-version = "0.1.6"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2dc6b7951b17b051f3210b063f12cc17320e2fe30ae05b0fe2a3abb068551c76"
+checksum = "98d0516900518c29efa217c298fa1f4e6c6ffc85ae29fd7f4ee48f176e1a9ed5"
 dependencies = [
  "proc-macro2",
  "quote 1.0.9",
@@ -3909,9 +3909,9 @@ dependencies = [
 
 [[package]]
 name = "tauri"
-version = "1.0.0-beta.0"
+version = "1.0.0-beta.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aa9bd4cf89f22018c1c78784826a66f148f384f8e03e6b65998a7a87e5ea9cea"
+checksum = "4fdc09779e4396b27ceb28d4ad1a998b0a3bc5f2afa4a563ab84bb4a55afdb77"
 dependencies = [
  "base64 0.13.0",
  "bincode",
@@ -3982,9 +3982,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-macros"
-version = "1.0.0-beta.0"
+version = "1.0.0-beta.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57b331b5b5c372c5354634c1dc2e66a01dba858a45def497f831864b9046d03e"
+checksum = "7ba8b137b0295c4271f4fca71cba5c868be2f9432f74b01c3c980725af777398"
 dependencies = [
  "proc-macro2",
  "quote 1.0.9",
@@ -3994,9 +3994,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "342bed3cc8f25c8948718c8a546bcc2946fbf0111c7129136a25c4edd5e12855"
+checksum = "4c018e168d448cc01368f5d25d97374f668e83cad94d1f324ef4ca2a1468ce33"
 dependencies = [
  "serde",
  "serde_json",
@@ -4007,9 +4007,9 @@ dependencies = [
 
 [[package]]
 name = "tauri-runtime-wry"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5a1286546dddf461983f63e5908edea3159c437c28bd0d574abd2ec7db3fb9e"
+checksum = "30fb55bbd7bb42c93fd48e1e9f55bcdd8ae35156ecf40a475c37bce4c435a0d7"
 dependencies = [
  "image",
  "tauri-runtime",
