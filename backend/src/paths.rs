@@ -16,32 +16,47 @@ pub fn normalize_map_name(map_name: &Path) -> String {
         .replace(".SC2Map", "")
 }
 pub fn find_available_maps() -> Vec<String> {
-    let mapdir = paths::map_dir();
-    let mut maps = vec![];
-    for outer in fs::read_dir(&mapdir).expect("Could not iterate map directory") {
-        let outer_path = outer.unwrap().path();
-        if !outer_path.is_dir() {
-            if outer_path.extension().unwrap() == "SC2Map" {
-                let relative = outer_path.strip_prefix(&mapdir).unwrap();
-                maps.push(normalize_map_name(relative));
-                continue;
-            } else {
-                continue;
-            }
-        }
+    let base_dir = match SettingsFormData::load_from_file() {
+        Ok(settings) => match settings.sc2_directory_location.is_empty() {
+            true => paths::base_dir(),
+            false => Path::new(&settings.sc2_directory_location).to_path_buf(),
+        },
+        Err(_) => paths::base_dir(),
+    };
 
-        for inner in fs::read_dir(outer_path).expect("Could not iterate map subdirectory") {
-            let path = inner.unwrap().path();
-            if !path.is_dir() {
-                if path.extension().unwrap() == "SC2Map" {
-                    let relative = path.strip_prefix(&mapdir).unwrap();
-                    maps.push(normalize_map_name(relative));
-                } else {
-                    continue;
+    let mapdir = base_dir.join(Path::new("Maps").to_path_buf());
+    let mut maps = vec![];
+    let read_dir = fs::read_dir(&mapdir);
+    match read_dir {
+        Ok(dir) => {
+            for outer in dir {
+                let outer_path = outer.unwrap().path();
+                if !outer_path.is_dir() {
+                    if outer_path.extension().unwrap() == "SC2Map" {
+                        let relative = outer_path.strip_prefix(&mapdir).unwrap();
+                        maps.push(normalize_map_name(relative));
+                        continue;
+                    } else {
+                        continue;
+                    }
+                }
+
+                for inner in fs::read_dir(outer_path).expect("Could not iterate map subdirectory") {
+                    let path = inner.unwrap().path();
+                    if !path.is_dir() {
+                        if path.extension().unwrap() == "SC2Map" {
+                            let relative = path.strip_prefix(&mapdir).unwrap();
+                            maps.push(normalize_map_name(relative));
+                        } else {
+                            continue;
+                        }
+                    }
                 }
             }
         }
+        Err(_) => {}
     }
+
     maps
 }
 
