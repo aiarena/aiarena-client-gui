@@ -103,9 +103,12 @@ pub fn close_splashscreen(
 ) {
   // Close splashscreen
   splashscreen.0.lock().unwrap().close().unwrap();
-  // Show main window
-  let main_window = main.0.lock().unwrap();
-  main_window.show().unwrap();
-  main_window.set_always_on_top(true).unwrap();
-  main_window.set_always_on_top(false).unwrap();
+  let args: Vec<String> = std::env::args().collect();
+  if !args.contains(&"--headless".to_string()) {
+    // Show main window
+    let main_window = main.0.lock().unwrap();
+    main_window.show().unwrap();
+    main_window.set_always_on_top(true).unwrap();
+    main_window.set_always_on_top(false).unwrap();
+  }
 }
