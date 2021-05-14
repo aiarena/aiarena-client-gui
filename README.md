@@ -7,12 +7,12 @@
   ```bash
   cargo install tauri-bundler
   ```
+  
 - Run in dev mode<br>
 ```bash
 > yarn
 > yarn tauri dev
 ```
-<br>
 - Build an executable <br>
 ```bash
 > yarn
