@@ -35,25 +35,27 @@ Backend [readme](backend/README.md)
   - [x] Linux (Except for FileDialog)
 - [x] Frontend
 - [x] Dynamic logging to file for debugging purposes
-- [ ] Rust tests
-- [ ] Frontend tests
+- [x] Rust tests
+- [ ] Frontend tests (help wanted)
 - [x] CI/CD
 - [ ] Docker File with all bot dependencies
 - [x] Headless mode
 
+
 #### Required for v1
 - [x] Download bots from AiArena and run games
 - [ ] Python virtualenv outside of Docker Container (ensures correct libraries and Python version)
-- [ ] One-Click bot dependency installer
+- [ ] One-Click bot dependency installer (help wanted)
 - [ ] Archon mode
 - [ ] Human vs Bot mode
 - [ ] Real-time game rendering (for Docker games)
 - [x] Faster builds
+- [ ] Virtualenv Manager
 
 #### After v1
-- [ ] Allow some website functionality through the app(TBD)
-- [ ] Auto-Updater (opt-in)
+- [ ] Allow some website functionality through the app(TBD) (help wanted)
+- [x] Auto-Updater (opt-in)
 - [ ] Play bot over internet (TBD)
-- [ ] Ai-Arena authentication
+- [ ] Ai-Arena authentication (help wanted)
 - [ ] Real-time updates via websockets (Text-based)
 
