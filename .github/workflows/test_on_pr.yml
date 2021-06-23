@@ -85,4 +85,12 @@ jobs:
           ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.app.tar.gz.sig
           ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi.zip
           ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi.zip.sig
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi          
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.AppImage.tar.gz
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.AppImage.tar.gz.sig
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.deb
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.app.tar.gz
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.app.tar.gz.sig
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.msi.zip
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.msi.zip.sig
           ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi
