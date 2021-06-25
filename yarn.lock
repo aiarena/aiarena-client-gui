@@ -1768,10 +1768,10 @@
   dependencies:
     defer-to-connect "^2.0.0"
 
-"@tauri-apps/api@^1.0.0-beta.1":
-  version "1.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@tauri-apps/api/-/api-1.0.0-beta.1.tgz#5b3696235c841cfe68d31b65a61c381778e5c733"
-  integrity sha512-WX9Hqf6pXFfpURTdz9VbHctnh4gjsWZDj5tSWqV4mQ2T8TldVmOSKqHpPDcVFibeM1L6oXJfrSgqR68Ho4g3bQ==
+"@tauri-apps/api@^1.0.0-beta.3":
+  version "1.0.0-beta.3"
+  resolved "https://registry.yarnpkg.com/@tauri-apps/api/-/api-1.0.0-beta.3.tgz#4794ee794e023d3f00eb0926b6b1825a251ec3d4"
+  integrity sha512-EtgykB6FVO6/gc51MXXXnNhOp81UUeI9en2CwetVKOMmXyqFSBR9yDP/P7yg658mKDefLaAEnm6eSHQxVMmB3w==
 
 "@tauri-apps/cli@^1.0.0-beta.1":
   version "1.0.0-beta.2"
