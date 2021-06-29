@@ -3953,13 +3953,15 @@ dependencies = [
 
 [[package]]
 name = "tauri-build"
-version = "1.0.0-beta.0"
+version = "1.0.0-beta.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "466b89fcc5a718d10adae43a1fa1a78c330b2b43dbe2c89ee518e9c2058d1c26"
+checksum = "bcefc20a0068157a26623f431aefa165601fe7e612b3bba8fc7b16995f91d86a"
 dependencies = [
  "anyhow",
  "proc-macro2",
  "quote 1.0.9",
+ "serde_json",
+ "tauri-utils",
  "winres",
 ]
 
