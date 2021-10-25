@@ -41,7 +41,7 @@
     ]
   },
   "devDependencies": {
-    "@craco/craco": "6.1.2",
+    "@craco/craco": "6.4.0",
     "@tauri-apps/api": "^1.0.0-beta.1",
     "@tauri-apps/cli": "^1.0.0-beta.1",
     "@tauri-apps/tauri-webpack": "0.2.0",
