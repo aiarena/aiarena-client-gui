@@ -23,7 +23,7 @@ serde_json = {version = "^1.0"}
 serde = {version ="^1.0", default-features=false}
 actix-cors = "0.5.4"
 directories = "3.0"
-actix-rt = "1.1.0"
+actix-rt = "2.4.0"
 zip = {version="0.5",  default-features=false}
 anyhow = {version="1"}
 itertools = {version="0.10", default-features=false}
