@@ -241,7 +241,7 @@ class Home extends Component {
                     <div className='Results'>
                         <h2>Results</h2>
                         <Button id="clear_results" variant={"outline-light"} onClick={this.clearResults} >Clear Results</Button>
-                        <Button id="refresh_results_id" variant={"outline-light"} onClick={this.getNewResultsData()} >Refresh</Button>
+                        <Button id="refresh_results_id" variant={"outline-light"} onClick={this.getNewResultsData} >Refresh</Button>
                         <br/><br/>
                         <ResultsTable data={(this.state.Results||[])}/>
                     </div>

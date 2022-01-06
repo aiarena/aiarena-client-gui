@@ -99,12 +99,18 @@ impl ResultsData {
         let mut results = HashMap::new();
         let mut average_frame_time = HashMap::new();
         let mut bots = HashMap::new();
-        results.insert(config.player1(), "InitializationError".to_string());
-        results.insert(config.player2(), "InitializationError".to_string());
-        average_frame_time.insert(config.player1(), None);
-        average_frame_time.insert(config.player2(), None);
-        bots.insert(1, config.player1());
-        bots.insert(2, config.player2());
+        results.insert(
+            config.player1().to_string(),
+            "InitializationError".to_string(),
+        );
+        results.insert(
+            config.player2().to_string(),
+            "InitializationError".to_string(),
+        );
+        average_frame_time.insert(config.player1().to_string(), None);
+        average_frame_time.insert(config.player2().to_string(), None);
+        bots.insert(1, config.player1().to_string());
+        bots.insert(2, config.player2().to_string());
         Self {
             results,
             game_time: 0,

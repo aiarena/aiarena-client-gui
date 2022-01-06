@@ -24,18 +24,20 @@ pub enum Cmd {
 
 #[tauri::command]
 pub fn open_file_dialog() -> String {
-  match FileDialogBuilder::default().pick_folder() {
-    None => "".to_string(),
-    Some(path) => path.display().to_string(),
-  }
+  let (tx, rx) = std::sync::mpsc::channel();
+
+  FileDialogBuilder::new().pick_folder(move |paths| tx.send(paths).unwrap());
+
+  rx.recv()
+    .unwrap()
+    .unwrap_or_default()
+    .into_os_string()
+    .into_string()
+    .unwrap_or_default()
 }
 #[tauri::command]
 pub fn tauri_test() -> bool {
-  if cfg!(target_os = "linux") {
-    false
-  } else {
-    true
-  }
+  !cfg!(target_os = "linux")
 }
 
 #[tauri::command]
@@ -64,7 +66,7 @@ pub fn open_directory(path: String) {
 
 #[tauri::command]
 pub fn settings_okay() -> bool {
-  return aiarena_client_gui_backend_lib::files::settings_data_file::settings_okay();
+  aiarena_client_gui_backend_lib::files::settings_data_file::settings_okay()
 }
 
 #[tauri::command]
@@ -77,10 +79,10 @@ pub fn restart_app_with_logs(env_var: String) {
       "aiarena-client-gui{}.log",
       chrono::Utc::now()
         .to_string()
-        .replace("-", "_")
-        .replace(" ", "_")
-        .replace(".", "")
-        .replace(":", "")
+        .replace('-', "_")
+        .replace(' ', "_")
+        .replace('.', "")
+        .replace(':', "")
     );
     println!("{}", &filename);
 
@@ -103,8 +105,7 @@ pub fn close_splashscreen(
 ) {
   // Close splashscreen
   splashscreen.0.lock().unwrap().close().unwrap();
-  let args: Vec<String> = std::env::args().collect();
-  if !args.contains(&"--headless".to_string()) {
+  if !std::env::args().any(|x| x == *"--headless") {
     // Show main window
     let main_window = main.0.lock().unwrap();
     main_window.show().unwrap();
