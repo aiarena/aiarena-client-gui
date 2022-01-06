@@ -8,7 +8,7 @@
     "@testing-library/user-event": "13.1.8",
     "axios": "^0.21.1",
     "bootstrap": "^4.6.0",
-    "qs": "^6.10.1",
+    "qs": "^6.10.2",
     "react": "17.0.2",
     "react-bootstrap": "^1.6.0",
     "react-dom": "17.0.2",
@@ -42,8 +42,8 @@
   },
   "devDependencies": {
     "@craco/craco": "6.1.2",
-    "@tauri-apps/api": "^1.0.0-beta.1",
-    "@tauri-apps/cli": "^1.0.0-beta.1",
+    "@tauri-apps/api": "^1.0.0-beta.8",
+    "@tauri-apps/cli": "^1.0.0-beta.10",
     "@tauri-apps/tauri-webpack": "0.2.0",
     "babel-loader": "8.1.0"
   }
