@@ -46,7 +46,7 @@ jobs:
           path: |
             src-tauri/target
             backend/target
-          key: ${{ runner.os }}-${{ steps.rustup.outputs.rustc_hash }}-dev-target-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-${{ steps.rustup.outputs.rustc_hash }}-dev-target
     - name: Cache node modules
       uses: actions/cache@v2
       env:
@@ -65,7 +65,7 @@ jobs:
         RUST_BACKTRACE: 1
         AIARENATOKEN: ${{ secrets.AIARENATOKEN }}
       run: cd backend && cargo test -- --nocapture
-    - uses: tauri-apps/tauri-action@v0
+    - uses: tauri-apps/tauri-action@v0.1.3
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         TAURI_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
@@ -83,4 +83,12 @@ jobs:
           ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.app.tar.gz.sig
           ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi.zip
           ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi.zip.sig
+          ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi          
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.AppImage.tar.gz
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.AppImage.tar.gz.sig
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.deb
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.app.tar.gz
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.app.tar.gz.sig
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.msi.zip
+          ${{ github.workspace }}/src-tauri/debug/release/bundle/**/*.msi.zip.sig
           ${{ github.workspace }}/src-tauri/target/release/bundle/**/*.msi
