@@ -17,7 +17,7 @@ env_logger = "^0.8"
 chrono = "0.4.19"
 
 [dependencies.tauri]
-version = "1.0.0-beta.8"
+version = "1.0.0-rc.6"
 features = ["dialog-open", "notification-all", "shell-all", "updater"]
 
 [features]
