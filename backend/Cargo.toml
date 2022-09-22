@@ -21,7 +21,7 @@ env_logger ={version="^0.8", default-features=false}
 actix-web = {version="^3.3.2", features=["rustls"], default-features=false}
 serde_json = {version = "^1.0"}
 serde = {version ="^1.0", default-features=false}
-actix-cors = "0.5.4"
+actix-cors = "0.6.3"
 directories = "3.0"
 actix-rt = "1.1.0"
 zip = {version="0.5",  default-features=false}
