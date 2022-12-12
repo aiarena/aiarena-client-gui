@@ -26,4 +26,4 @@ custom-protocol = [ "tauri/custom-protocol" ]
 
 [build-dependencies]
 aiarena-client-gui-backend = { path = "../backend" }
-tauri-build = { version = "1.0.0-beta.0" }
+tauri-build = { version = "2.0.0-alpha.0" }
